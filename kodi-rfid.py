@@ -32,6 +32,9 @@ class kodiRFIDServer(rfid.RFIDServer):
         print "playing %s"%show['file']
         self.kodi.Player.Open(item={'file':show['file']})
   
+  def play_radio(self, item):
+    self.kodi.Player.Open(item={'file':item})
+  
   def on_tag_received(self, tag):
       albumid = self.get_album(tag)
       if albumid is not None:
@@ -42,8 +45,14 @@ class kodiRFIDServer(rfid.RFIDServer):
         if addon is not None:
           if addon[0] == 'plugin.video.arteplussept':
             self.play_arte(addon[2])
+          elif addon[0] == 'plugin.audio.radio_de':
+            self.play_radio(addon[2])
         else:
-          self.register_tag(tag)
+          artistid = self.get_artist(tag)
+          if artistid is not None:
+            self.play_artist(artistid)
+          else:
+            self.register_tag(tag)
 
   def query(self, query):
     self.query_db.execute(query)
@@ -53,10 +62,19 @@ class kodiRFIDServer(rfid.RFIDServer):
       (albumid integer, tag text)''')
     self.query('''CREATE TABLE addons_tags
       (addonid text, tag text, parameters text)''')
+    self.query('''CREATE TABLE artists_tags
+      (artistid integer, tag text)''')
 
   def fetchone(self, query):
     self.query_db.execute(query)
     return self.query_db.fetchone()
+
+  def get_artist(self, tag):
+    q = 'select * from artists_tags where tag = "%s"'%tag
+    res = self.fetchone(q)
+    if res is not None:
+      return res[0]
+    return None
 
   def get_album(self, tag):
     q = 'select * from albums_tags where tag = "%s"'%tag
@@ -78,6 +96,10 @@ class kodiRFIDServer(rfid.RFIDServer):
   def clear_playlist(self,pid = playlist_id):
     self.kodi.Playlist.Clear(playlistid=pid)
     
+  def play_artist(self, artistid, pid = playlist_id):
+    self.clear_playlist(pid)
+    self.kodi.Playlist.Add(playlistid=pid, item={'artistid':artistid})
+    self.kodi.Player.Open(item={'playlistid':pid, 'position':0})
   
   def play_album(self, albumid, pid = playlist_id):
     self.clear_playlist(pid)
@@ -144,10 +166,44 @@ class kodiRFIDServer(rfid.RFIDServer):
         q = 'insert into addons_tags (addonid, tag, parameters) values ("%s","%s","%s")'%(addons[addon_index]['addonid'], tag, shows[show_index])
         self.query(q)
         self.commit()
+        return True
+      elif addons[addon_index]['addonid'] == 'plugin.audio.radio_de':
+        search = raw_input('search for a radio ')
+        raw_stations =  self.kodi.Files.GetDirectory(directory='plugin://plugin.audio.radio_de/stations/search/%s'%search)
+        stations = []
+        for station in raw_stations["result"]['files']:
+          stations.append(station)
+        for index,station in enumerate(stations):
+          print "[%s] - %s"%(index, stations[index]['label'])
+        station_index = int(input('Select the title: '))
+        print "selected %s"%stations[station_index]['label']
+        q = 'insert into addons_tags (addonid, tag, parameters) values ("%s","%s","%s")'%(addons[addon_index]['addonid'], tag, stations[station_index]['file'])
+        self.query(q)
+        self.commit()
+        return True
       else:
-        print "unmanaged plugin"
+        print "unmanaged plugin %s"%addons[addon_index]['addonid']
         return False
+    elif tag_type == 2: # artist:
+      artists = {}
+      artists_raw = self.kodi.AudioLibrary.GetArtists()
+      for artist in artists_raw["result"]["artists"]:
+        artists[artist['artistid']] = artist
+      for key,value in artists.iteritems():
+        print "[%s] - %s"%(key, artists[key]['artist'])
       
+      artist_index = int(input('Select the artist: '))
+      print "selected %s"%artists[artist_index]['artist']
+      q = 'insert into artists_tags (artistid, tag) values ("%s","%s")'%(artists[artist_index]['artistid'], tag)
+      self.query(q)
+      self.commit()
+      return True
     
+    else:
+      print "unmanaged type %s"%self.TYPES[tag_type]
+      
+      
+    return False
+      
 port_num = 6677
 kodiRFIDServer('0.0.0.0',port_num).listen()
