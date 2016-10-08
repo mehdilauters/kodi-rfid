@@ -1,7 +1,12 @@
+#!/usr/bin/env python
+
 import os
 import argparse
 import imp
-rfid = imp.load_source('RFIDServer', './esp8266-rfid/tools/RFIDServer.py')
+
+path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp8266-rfid/tools/RFIDServer.py')
+
+rfid = imp.load_source('RFIDServer', path)
 
 from xbmcjson import XBMC, PLAYER_VIDEO
 import json
@@ -25,6 +30,7 @@ def parse_args():
 class kodiRFIDServer(rfid.RFIDServer):
   TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action']
   ACTIONS = ['play_pause', 'mute','party_mode']
+  YOUTUBE_ACTIONS = ['video', 'playlist']
   
   def __init__(self, args):
     self.args = args
@@ -55,7 +61,7 @@ class kodiRFIDServer(rfid.RFIDServer):
   
   def play_url(self, url):
     if os.path.isdir(url):
-      self.kodi.Player.Open(item={'directory':url})
+      self.kodi.Player.Open(item={'directory':url}, options={"shuffled":self.args.shuffle})
     else:
       self.kodi.Player.Open(item={'file':url})
   
@@ -239,6 +245,29 @@ class kodiRFIDServer(rfid.RFIDServer):
         station_index = int(raw_input('Select the title: '))
         print "selected %s"%stations[station_index]['label']
         q = 'insert into addons_tags (addonid, tag, parameters) values ("%s","%s","%s")'%(addons[addon_index]['addonid'], tag, stations[station_index]['file'])
+        self.query(q)
+        self.commit()
+        return True
+      elif addons[addon_index]['addonid'] == 'plugin.video.youtube':
+        for i,t in enumerate(self.YOUTUBE_ACTIONS):
+          print "- [%s] %s"%(i, t)
+        action = 0
+        try:
+          action = int(raw_input('Select the action [0]: '))
+        except:
+          pass
+        print "%s selected"%self.YOUTUBE_ACTIONS[action]
+        
+        itemid = raw_input('Select the id: ')
+        
+        if self.YOUTUBE_ACTIONS[action] == 'video':
+          uri = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s'%itemid
+        elif self.YOUTUBE_ACTIONS[action] == 'playlist':
+          uri = 'plugin://plugin.video.youtube/play/?playlist_id=%s'%itemid
+        else:
+          print 'Invalid action: %s'%action
+          return False
+        q = 'insert into urls_tags (url, tag) values ("%s","%s")'%(uri, tag)
         self.query(q)
         self.commit()
         return True
