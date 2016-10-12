@@ -23,6 +23,7 @@ def parse_args():
   parser.add_argument('-p', '--port', help='tcp server port')
   parser.add_argument("-d", "--database", help="tags database")
   parser.add_argument("-k", "--kodiurl", help="tags database")
+  parser.add_argument("-e", "--edit", action='store_true', help="tags database")
   parser.add_argument("-s", "--shuffle", action='store_true', help="shuffle added items")
   return parser.parse_args()
 
@@ -68,7 +69,21 @@ class kodiRFIDServer(rfid.RFIDServer):
   def party_mode(self, party=True):
     print self.kodi.Player.SetPartyMode(playerid=0, partymode=party)
   
+  def delete_tag(self, tag):
+    for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags']:
+      q = 'delete from %s where tag = "%s"'%(t, tag)
+      self.query(q)
+    self.commit()
+  
+  def play_youtube(self, uri):
+    self.kodi.Player.Open(item={'file':uri})
+    if 'playlist_id' in uri:
+      self.kodi.Player.Open(item={'playlistid':1, 'position':0})
+  
   def on_tag_received(self, tag):
+      if self.args.edit:
+        self.delete_tag(tag)
+        return self.register_tag(tag)
       albumid = self.get_album(tag)
       if albumid is not None:
         print albumid
@@ -80,6 +95,8 @@ class kodiRFIDServer(rfid.RFIDServer):
             self.play_arte(addon[2])
           elif addon[0] == 'plugin.audio.radio_de':
             self.play_radio(addon[2])
+          elif addon[0] == 'plugin.video.youtube':
+            self.play_youtube(addon[2])
         else:
           artistid = self.get_artist(tag)
           if artistid is not None:
@@ -263,11 +280,11 @@ class kodiRFIDServer(rfid.RFIDServer):
         if self.YOUTUBE_ACTIONS[action] == 'video':
           uri = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s'%itemid
         elif self.YOUTUBE_ACTIONS[action] == 'playlist':
-          uri = 'plugin://plugin.video.youtube/play/?playlist_id=%s'%itemid
+          uri = 'plugin://plugin.video.youtube/play/?order=default&playlist_id=%s'%itemid
         else:
           print 'Invalid action: %s'%action
           return False
-        q = 'insert into urls_tags (url, tag) values ("%s","%s")'%(uri, tag)
+        q = 'insert into addons_tags (addonid, tag, parameters) values ("plugin.video.youtube", "%s","%s")'%(tag, uri)
         self.query(q)
         self.commit()
         return True
