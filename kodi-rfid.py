@@ -3,6 +3,7 @@
 import os
 import argparse
 import imp
+import subprocess
 
 path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp8266-rfid/tools/RFIDServer.py')
 
@@ -29,7 +30,7 @@ def parse_args():
 
 
 class kodiRFIDServer(rfid.RFIDServer):
-  TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action']
+  TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action', 'command']
   ACTIONS = ['play_pause', 'mute','party_mode']
   YOUTUBE_ACTIONS = ['video', 'playlist']
   
@@ -113,7 +114,11 @@ class kodiRFIDServer(rfid.RFIDServer):
               if url is not None:
                   self.play_url(url)
               else:
-                self.register_tag(tag)
+                command = self.get_command(tag)
+                if command is not None:
+                  subprocess.Popen(command, shell=True)
+                else:
+                  self.register_tag(tag)
 
   def query(self, query):
     self.query_db.execute(query)
@@ -129,6 +134,8 @@ class kodiRFIDServer(rfid.RFIDServer):
       (action string, tag text)''')
     self.query('''CREATE TABLE urls_tags
       (url string, tag text)''')
+    self.query('''CREATE TABLE commands_tags
+      (command string, tag text)''')
 
   def fetchone(self, query):
     self.query_db.execute(query)
@@ -164,6 +171,13 @@ class kodiRFIDServer(rfid.RFIDServer):
   
   def get_url(self, tag):
     q = 'select * from urls_tags where tag = "%s"'%tag
+    res = self.fetchone(q)
+    if res is not None:
+      return res[0]
+    return None
+  
+  def get_command(self, tag):
+    q = 'select * from commands_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
       return res[0]
@@ -331,6 +345,11 @@ class kodiRFIDServer(rfid.RFIDServer):
       else:
         print "unmanaged action %s"%self.ACTIONS[action]
         return False
+    elif tag_type == 6: # command:
+      cmd = raw_input('Enter the full command line: ')
+      q = 'insert into commands_tags (command, tag) values ("%s","%s")'%(cmd, tag)
+      self.query(q)
+      self.commit()
     else:
       print "unmanaged type %s"%self.TYPES[tag_type]
       
