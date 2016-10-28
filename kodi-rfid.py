@@ -118,7 +118,7 @@ class kodiRFIDServer(rfid.RFIDServer):
                 if command is not None:
                   subprocess.Popen(command, shell=True)
                 else:
-                  self.register_tag(tag)
+                  print "unknown tag %s"%tag
 
   def query(self, query):
     self.query_db.execute(query)
