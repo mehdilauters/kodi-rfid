@@ -294,7 +294,7 @@ class kodiRFIDServer(rfid.RFIDServer):
         if self.YOUTUBE_ACTIONS[action] == 'video':
           uri = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s'%itemid
         elif self.YOUTUBE_ACTIONS[action] == 'playlist':
-          uri = 'plugin://plugin.video.youtube/play/?order=default&playlist_id=%s'%itemid
+          uri = 'plugin://plugin.video.youtube/play/?order=shuffle&playlist_id=%s'%itemid
         else:
           print 'Invalid action: %s'%action
           return False
