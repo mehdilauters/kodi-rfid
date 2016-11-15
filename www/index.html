@@ -1,0 +1,31 @@
+<!DOCTYPE html> 
+<html>
+<head> 
+<title>kodi-rfid</title>
+<script src="/js/components/jquery/dist/jquery.js"></script>
+<script src="/js/components/jquery-ui/jquery-ui.js"></script>
+<script src="/js/components/angular/angular.js"></script>
+<script src="/js/components/bootstrap/dist/js/bootstrap.min.js"></script>
+<script src="/js/app.js"></script>
+<script src="/js/index.js"></script>
+<link rel="stylesheet" href="/js/components/bootstrap/dist/css/bootstrap.min.css" />
+<link rel="stylesheet" href="/js/components/font-awesome/css/font-awesome.min.css" />
+</head>
+<body ng-app="kodi-rfid">
+    <div ng-controller="indexController">
+        <ul>
+            <li ng-repeat="type in types">
+            <button ng-click="select_type(type)" >{{type}}</button>
+            </li>
+        </ul>
+        <hr/>
+        <div>
+            <ul>
+                <li ng-repeat="tag in tags" id="tag_{{tag[1]}}" >
+                    {{tag[1]}} {{tag[0]}} <button ng-click="delete(tag[1])">delete</button>
+                </li>
+            </ul>
+        </div>
+    </div>
+</body>
+</html>

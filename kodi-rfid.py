@@ -4,6 +4,9 @@ import os
 import argparse
 import imp
 import subprocess
+from threading import Lock
+
+from src.WebUi import *
 
 path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp8266-rfid/tools/RFIDServer.py')
 
@@ -40,6 +43,8 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.kodi = XBMC("%s/jsonrpc"%args.kodiurl)
     self.db = sqlite3.connect(args.database, check_same_thread=False)
     self.query_db = self.db.cursor()
+    self.lock = Lock()
+
     try:
       self.query('''select * from albums_tags''')
     except:
@@ -137,6 +142,11 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.query('''CREATE TABLE commands_tags
       (command string, tag text)''')
 
+  def fetchall(self, query):
+    with self.lock:
+      self.query_db.execute(query)
+      return self.query_db.fetchall()
+
   def fetchone(self, query):
     self.query_db.execute(query)
     return self.query_db.fetchone()
@@ -147,6 +157,11 @@ class kodiRFIDServer(rfid.RFIDServer):
     if res is not None:
       return res[0]
     return None
+
+  def get_albums(self):
+    q = 'select * from artists_tags'
+    res = self.fetchall(q)
+    return res
 
   def get_album(self, tag):
     q = 'select * from albums_tags where tag = "%s"'%tag
@@ -367,6 +382,11 @@ def main(args):
   if args.database is None:
     args.database = default_database
 
-  kodiRFIDServer(args).listen()
+  server = kodiRFIDServer(args)
+  
+  httpd = WebuiHTTPServer(("", 8889),server, WebuiHTTPHandler)
+  httpd.start()
+  
+  server.listen()
 
 main(parse_args())

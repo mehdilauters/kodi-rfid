@@ -1,0 +1,99 @@
+from BaseHTTPServer import BaseHTTPRequestHandler, HTTPServer
+from SocketServer import ThreadingMixIn
+import json
+from threading import Thread
+import threading
+import os
+#import PrctlTool
+import re
+import urllib
+
+class WebuiHTTPHandler(BaseHTTPRequestHandler):
+    
+    def log_message(self, format, *args):
+      pass
+    
+    def _parse_url(self):
+        # parse URL
+        path = self.path.strip('/')
+        sp = path.split('?')
+        if len(sp) == 2:
+            path, params = sp
+        else:
+            path, = sp
+            params = None
+        args = path.split('/')
+
+        return path,params,args
+    
+    
+    def _get_file(self, path):
+      _path = os.path.join(self.server.www_directory,path)
+      if os.path.exists(_path):
+          try:
+          # open asked file
+              data = open(_path,'r').read()
+
+              # send HTTP OK
+              self.send_response(200)
+              self.end_headers()
+
+              # push data
+              self.wfile.write(data)
+          except IOError as e:
+                self.send_500(str(e))
+    
+    def _get_types(self):
+        types = self.server.app.TYPES
+        data = json.dumps(types)
+        self.wfile.write(data)
+        
+    def _get_tags(self, _type):
+      tags = []
+      if _type == 'album':
+          tags = self.server.app.get_albums()
+      data = json.dumps(tags)
+      self.wfile.write(data)
+    
+    def _delete(self, tag):
+        self.server.app.delete_tag(tag)
+        self.wfile.write(True)
+    
+    def do_POST(self):
+      path,params,args = self._parse_url()
+      length = int(self.headers['Content-Length'])
+      post = self.rfile.read(length)
+      if len(args) == 1 and args[0] == 'delete.json':
+        return self._delete(post)
+    
+    def do_GET(self):
+        path,params,args = self._parse_url()
+        if ('..' in args) or ('.' in args):
+            self.send_400()
+            return
+        if len(args) == 1 and args[0] == '':
+            path = 'index.html'
+        if len(args) == 1 and args[0] == 'types.json':
+            return self._get_types()
+        elif len(args) == 1 and args[0] == 'tags.json':
+            return self._get_tags(params.split("=")[1])
+        
+        return self._get_file(path)
+      
+class WebuiHTTPServer(ThreadingMixIn, HTTPServer, Thread):
+  allow_reuse_address = True
+  
+  def __init__(self, server_address, app, RequestHandlerClass, bind_and_activate=True):
+    HTTPServer.__init__(self, server_address, RequestHandlerClass, bind_and_activate)
+    threading.Thread.__init__(self)
+    self.app = app
+    self.www_directory = "www/"
+    self.stopped = False
+    
+  def stop(self):
+    self.stopped = True
+    
+  def run(self):
+      #PrctlTool.set_title('webserver')
+      while not self.stopped:
+          self.handle_request()
