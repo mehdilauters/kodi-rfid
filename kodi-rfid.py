@@ -44,6 +44,7 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.db = sqlite3.connect(args.database, check_same_thread=False)
     self.query_db = self.db.cursor()
     self.lock = Lock()
+    self.last_tag = None
 
     try:
       self.query('''select * from albums_tags''')
@@ -87,6 +88,7 @@ class kodiRFIDServer(rfid.RFIDServer):
       self.kodi.Player.Open(item={'playlistid':1, 'position':0})
   
   def on_tag_received(self, tag):
+      self.last_tag = tag
       if self.args.edit:
         self.delete_tag(tag)
         return self.register_tag(tag)
@@ -151,6 +153,12 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.query_db.execute(query)
     return self.query_db.fetchone()
 
+
+  def get_artists(self):
+    q = 'select * from artists_tags'
+    res = self.fetchall(q)
+    return res
+
   def get_artist(self, tag):
     q = 'select * from artists_tags where tag = "%s"'%tag
     res = self.fetchone(q)
@@ -170,12 +178,22 @@ class kodiRFIDServer(rfid.RFIDServer):
       return res[0]
     return None
   
+  def get_addons(self):
+    q = 'select * from addons_tags'
+    res = self.fetchall(q)
+    return res
+  
   def get_addon(self, tag):
     q = 'select * from addons_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
       return res
     return None
+  
+  def get_actions(self):
+    q = 'select * from actions_tags'
+    res = self.fetchall(q)
+    return res
   
   def get_action(self, tag):
     q = 'select * from actions_tags where tag = "%s"'%tag
@@ -184,12 +202,22 @@ class kodiRFIDServer(rfid.RFIDServer):
       return res[0]
     return None
   
+  def get_urls(self):
+    q = 'select * from urls_tags'
+    res = self.fetchall(q)
+    return res
+  
   def get_url(self, tag):
     q = 'select * from urls_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
       return res[0]
     return None
+  
+  def get_commands(self):
+    q = 'select * from commands_tags'
+    res = self.fetchall(q)
+    return res
   
   def get_command(self, tag):
     q = 'select * from commands_tags where tag = "%s"'%tag
@@ -219,6 +247,8 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.kodi.Playlist.Add(playlistid=pid, item={'albumid':albumid})
     self.kodi.Player.Open(item={'playlistid':pid, 'position':0}, options={"shuffled":self.args.shuffle})
     
+  def get_availables_albums(self):
+      return self.kodi.AudioLibrary.GetAlbums(properties=['artist', 'title', 'thumbnail'])["result"]["albums"]
 
   def register_tag(self, tag):
     print "registering %s"%tag
@@ -235,8 +265,8 @@ class kodiRFIDServer(rfid.RFIDServer):
     
     if tag_type == 0: # album
       albums = {}
-      albums_raw = self.kodi.AudioLibrary.GetAlbums(properties=['artist', 'title'])
-      for album in albums_raw["result"]["albums"]:
+      albums_raw = self.get_availables_albums()
+      for album in albums_raw:
         albums[album['albumid']] = {'artist':album['artist'][0], 'title':album['title']}
       for key,value in albums.iteritems():
         print "[%s] - %s  %s"%(key, albums[key]['artist'], albums[key]['title'])

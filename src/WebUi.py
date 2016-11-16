@@ -47,11 +47,33 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         types = self.server.app.TYPES
         data = json.dumps(types)
         self.wfile.write(data)
-        
+    
+    def _get_last(self):
+        last = self.server.app.last_tag
+        data = json.dumps({'id':last})
+        self.wfile.write(data)
+    
+    def _get_albums(self):
+        albums = self.server.app.get_availables_albums()
+        for i,a in enumerate(albums):
+            albums[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(albums[i]['thumbnail']))
+        data = json.dumps(albums)
+        self.wfile.write(data)
+    
     def _get_tags(self, _type):
       tags = []
       if _type == 'album':
           tags = self.server.app.get_albums()
+      elif _type == 'addon':
+          tags = self.server.app.get_addons()
+      elif _type == 'artist':
+          tags = self.server.app.get_artists()    
+      elif _type == 'action':
+          tags = self.server.app.get_actions()
+      elif _type == 'url':
+          tags = self.server.app.get_urls()
+      elif _type == 'command':
+          tags = self.server.app.get_commands()
       data = json.dumps(tags)
       self.wfile.write(data)
     
@@ -77,6 +99,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return self._get_types()
         elif len(args) == 1 and args[0] == 'tags.json':
             return self._get_tags(params.split("=")[1])
+        if len(args) == 1 and args[0] == 'last.json':
+            return self._get_last()
+        if len(args) == 1 and args[0] == 'albums.json':
+            return self._get_albums()
         
         return self._get_file(path)
       

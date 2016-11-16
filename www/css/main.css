@@ -1,0 +1,13 @@
+#register_container, #register_url {
+    display:none;
+}
+
+.thumbnail {
+ max-width:200px;
+}
+
+.item {
+ float:left;
+ width:200px;
+ height:500px;
+}

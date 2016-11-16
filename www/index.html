@@ -10,21 +10,47 @@
 <script src="/js/index.js"></script>
 <link rel="stylesheet" href="/js/components/bootstrap/dist/css/bootstrap.min.css" />
 <link rel="stylesheet" href="/js/components/font-awesome/css/font-awesome.min.css" />
+<link rel="stylesheet" href="/css/main.css" />
 </head>
 <body ng-app="kodi-rfid">
     <div ng-controller="indexController">
-        <ul>
-            <li ng-repeat="type in types">
-            <button ng-click="select_type(type)" >{{type}}</button>
-            </li>
-        </ul>
-        <hr/>
+        <div>
+            Last tag : {{last}} <button ng-click="register(last)">register</button> <button ng-click="delete(last)">delete</button>
+            <div id="register_container">
+            <select ng-options="type as type for type in types" ng-model="type" ng-change="register_type_update()"></select>
+            
+            
+            <div id="register_url" class="register_type_container" >Url <input ng-model="registered_url" ></div>
+            
+            <div id="register_command" class="register_type_container" >Command <input ng-model="registered_command" ></div>
+            
+                <div id="register_album" class="register_type_container" >
+                    <ul>
+                        <li ng-repeat="album in albums" class="item" >
+                            {{album.title}}
+                            <img class="thumbnail" src="{{album.thumbnail}}" />
+                            <span ng-repeat="artist in album.artist" >{{artist}}</span> <br/>
+                            <button ng-click="select_album(album.id)" >Select</button>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <hr/>
+        </div>
         <div>
             <ul>
-                <li ng-repeat="tag in tags" id="tag_{{tag[1]}}" >
-                    {{tag[1]}} {{tag[0]}} <button ng-click="delete(tag[1])">delete</button>
+                <li ng-repeat="type in types">
+                <button ng-click="select_type(type)" >{{type}}</button>
                 </li>
             </ul>
+            <hr/>
+            <div>
+                <ul>
+                    <li ng-repeat="tag in tags" id="tag_{{tag[1]}}" >
+                        {{tag[1]}} {{tag[0]}} <button ng-click="delete(tag[1])">delete</button>
+                    </li>
+                </ul>
+            </div>
         </div>
     </div>
 </body>

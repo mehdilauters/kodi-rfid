@@ -7,6 +7,11 @@ app.controller("indexController", function($http, $scope, $location) {
     }, function errorCallback(response) {
     });
     
+    $http.get('/albums.json').then(response => {
+        $scope.albums = response.data;
+    }, function errorCallback(response) {
+    });
+    
     $scope.select_type = function (type) {
         $http.get('/tags.json?type='+type).then(response => {
             $scope.tags = response.data;
@@ -25,6 +30,28 @@ app.controller("indexController", function($http, $scope, $location) {
             }
         );
     }
+    
+    $scope.register = function (tag) {
+        $('#register_container').show();
+    }
+    
+    $scope.register_type_update = function () {
+        $(".register_type_container").hide();
+        $("#register_"+$scope.type).show();
+    }
+    
+    $scope.update_last = function () {
+        $http.get('/last.json').then(response => {
+            $scope.last = response.data.id;
+            setTimeout($scope.update_last, 1000)
+        }, function errorCallback(response) {
+            console.log(response)
+            setTimeout($scope.update_last, 1000)
+        });
+    }
+    
+    
+    setTimeout($scope.update_last, 1000)
     
     
 });
