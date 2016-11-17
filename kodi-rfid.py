@@ -36,6 +36,7 @@ class kodiRFIDServer(rfid.RFIDServer):
   TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action', 'command']
   ACTIONS = ['play_pause', 'mute','party_mode']
   YOUTUBE_ACTIONS = ['video', 'playlist']
+  ADDONS = ['plugin.video.youtube', 'plugin.audio.radio_de', 'plugin.video.arteplussept']
   
   def __init__(self, args):
     self.args = args
@@ -153,6 +154,8 @@ class kodiRFIDServer(rfid.RFIDServer):
     self.query_db.execute(query)
     return self.query_db.fetchone()
 
+  def get_addons(self):
+      return self.kodi.Addons.GetAddons(properties=['name'])["result"]["addons"]
 
   def get_artists(self):
     q = 'select * from artists_tags'
@@ -253,6 +256,15 @@ class kodiRFIDServer(rfid.RFIDServer):
   def get_availables_artists(self):
       return self.kodi.AudioLibrary.GetArtists(properties=['thumbnail'])["result"]["artists"]
 
+  def get_availables_addons(self):
+      return self.ADDONS
+
+  def get_availables_actions(self):
+      return self.ACTIONS
+  
+  def get_availables_types(self):
+      return self.TYPES
+
   def register_album(self, tag, albumid):
       q = 'insert into albums_tags (albumid, tag) values (%s,"%s")'%(albumid, tag)
       self.query(q)
@@ -270,6 +282,11 @@ class kodiRFIDServer(rfid.RFIDServer):
       
   def register_command(self, tag, cmd):
       q = 'insert into commands_tags (command, tag) values ("%s","%s")'%(cmd, tag)
+      self.query(q)
+      self.commit()
+
+  def register_action(self, tag, action):
+      q = 'insert into actions_tags (action, tag) values ("%s","%s")'%(action, tag)
       self.query(q)
       self.commit()
 
@@ -304,9 +321,8 @@ class kodiRFIDServer(rfid.RFIDServer):
       return True
     elif tag_type == 1: # addon:
       addons = {}
-      addons_raw = self.kodi.Addons.GetAddons(properties=['name'])
       index=0
-      for addon in addons_raw["result"]["addons"]:
+      for addon in self.get_addons():
         if addon['type'] == 'xbmc.python.pluginsource':
           addons[index] = addon
           index += 1
@@ -396,17 +412,8 @@ class kodiRFIDServer(rfid.RFIDServer):
       except:
         pass
       print "%s selected"%self.ACTIONS[action]
-      if action == 0: # play_pause
-        q = 'insert into actions_tags (action, tag) values ("%s","%s")'%(self.ACTIONS[action], tag)
-        self.query(q)
-        self.commit()
-      elif action == 2: # party_mode
-        q = 'insert into actions_tags (action, tag) values ("%s","%s")'%(self.ACTIONS[action], tag)
-        self.query(q)
-        self.commit()
-      else:
-        print "unmanaged action %s"%self.ACTIONS[action]
-        return False
+      self.register_action(self.ACTIONS[action])
+      return True
     elif tag_type == 6: # command:
       cmd = raw_input('Enter the full command line: ')
       self.register_command(tag, cmd)

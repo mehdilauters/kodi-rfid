@@ -44,7 +44,18 @@
                         </li>
                     </ul>
                 </div>
+                <div id="register_action" class="register_type_container" >
+                    <select ng-options="action as action for action in actions" ng-model="registered_action" ></select>
+                    <button ng-click="select_action(last, registered_action)" >Select</button>
+                </div>
                 
+                <div id="register_addon" class="register_type_container" >
+                    <select ng-options="addon as addon for addon in addons" ng-model="registered_addon" ng-change="register_addon_update()" ></select>
+                    <div id="register_plugin.video.youtube_container" class="register_addon_container" >
+                    youtuuuuube
+                    </div>
+<!--                     <button ng-click="select_addon(last, registered_action)" >Select</button> -->
+                </div>
             </div>
             <hr/>
         </div>

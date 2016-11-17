@@ -3,6 +3,7 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.tags = [];
     
     $scope.last = null;
+    var already_loaded = false;
     
     $http.get('/types.json').then(response => {
         $scope.types = response.data;
@@ -29,18 +30,35 @@ app.controller("indexController", function($http, $scope, $location) {
     }
     
     $scope.register = function (tag) {
-        $('#register_container').show();
-        $http.get('/albums.json').then(response => {
-            $scope.albums = response.data;
-        }, function errorCallback(response) {
-            console.log(response)
-        });
-        
-        $http.get('/artists.json').then(response => {
-            $scope.artists = response.data;
-        }, function errorCallback(response) {
-            console.log(response)
-        });
+        if($scope.last != null) {
+            $('#register_container').show();
+        }
+        if( ! already_loaded ) {
+            already_loaded = true;
+            $http.get('/albums.json').then(response => {
+                $scope.albums = response.data;
+            }, function errorCallback(response) {
+                console.log(response)
+            });
+            
+            $http.get('/artists.json').then(response => {
+                $scope.artists = response.data;
+            }, function errorCallback(response) {
+                console.log(response)
+            });
+            
+            $http.get('/actions.json').then(response => {
+                $scope.actions = response.data;
+            }, function errorCallback(response) {
+                console.log(response)
+            });
+            
+            $http.get('/addons.json').then(response => {
+                $scope.addons = response.data;
+            }, function errorCallback(response) {
+                console.log(response)
+            });
+        }
     }
     
     $scope.register_type_update = function () {
@@ -69,6 +87,23 @@ app.controller("indexController", function($http, $scope, $location) {
             command: command,
             tagid: tag
         });
+        $http.post("/register.json", data, {})
+        .then(
+            function(response){
+                $('#register_container').hide();
+            }, 
+            function(response){
+                console.log(response)
+            }
+        );        
+    }
+    
+    $scope.select_action = function(tag, action) {
+        var data = $.param({
+            action: action,
+            tagid: tag
+        });
+        console.log(action)
         $http.post("/register.json", data, {})
         .then(
             function(response){
@@ -126,6 +161,11 @@ app.controller("indexController", function($http, $scope, $location) {
                 console.log(response)
             }
         );        
+    }
+    
+    $scope.register_addon_update = function () {
+        $(".register_addon_container").hide();
+        $("#register_"+$scope.registered_addon+"_container").show();
     }
     
     setTimeout($scope.update_last, 1000)

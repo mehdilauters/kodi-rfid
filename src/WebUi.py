@@ -45,8 +45,18 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
                 self.send_500(str(e))
     
     def _get_types(self):
-        types = self.server.app.TYPES
+        types = self.server.app.get_availables_types()
         data = json.dumps(types)
+        self.wfile.write(data)
+        
+    def _get_actions(self):
+        actions = self.server.app.get_availables_actions()
+        data = json.dumps(actions)
+        self.wfile.write(data)
+        
+    def _get_addons(self):
+        addons = self.server.app.get_availables_addons()
+        data = json.dumps(addons)
         self.wfile.write(data)
     
     def _get_last(self):
@@ -103,6 +113,9 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         elif 'command' in data.keys():
             self.server.app.delete_tag(tagid)
             self.server.app.register_command(tagid, data['command'][0])
+        elif 'action' in data.keys():
+            self.server.app.delete_tag(tagid)
+            self.server.app.register_action(tagid, data['action'][0])
         self.wfile.write(True)
     
     def do_POST(self):
@@ -121,16 +134,20 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return
         if len(args) == 1 and args[0] == '':
             path = 'index.html'
-        if len(args) == 1 and args[0] == 'types.json':
+        elif len(args) == 1 and args[0] == 'types.json':
             return self._get_types()
         elif len(args) == 1 and args[0] == 'tags.json':
             return self._get_tags(params.split("=")[1])
-        if len(args) == 1 and args[0] == 'last.json':
+        elif len(args) == 1 and args[0] == 'last.json':
             return self._get_last()
-        if len(args) == 1 and args[0] == 'albums.json':
+        elif len(args) == 1 and args[0] == 'albums.json':
             return self._get_albums()
-        if len(args) == 1 and args[0] == 'artists.json':
+        elif len(args) == 1 and args[0] == 'artists.json':
             return self._get_artists()
+        elif len(args) == 1 and args[0] == 'actions.json':
+            return self._get_actions()
+        elif len(args) == 1 and args[0] == 'addons.json':
+            return self._get_addons()
         
         return self._get_file(path)
       
