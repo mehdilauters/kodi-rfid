@@ -55,7 +55,13 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
         
     def _get_addons(self):
-        addons = self.server.app.get_availables_addons()
+        addons_raw = self.server.app.get_availables_addons()
+        addons = []
+        for a in addons_raw:
+          addons.append({
+            'id':a,
+            'name': a.replace('.','_'),
+            })
         data = json.dumps(addons)
         self.wfile.write(data)
     
@@ -116,6 +122,20 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         elif 'action' in data.keys():
             self.server.app.delete_tag(tagid)
             self.server.app.register_action(tagid, data['action'][0])
+        elif 'addon' in data.keys():
+            if data['addon'][0] == 'plugin.video.youtube':
+              self.server.app.delete_tag(tagid)
+              playlist = ""
+              video = ""
+              try:
+                video = data['video'][0]
+              except:
+                pass
+              try:
+                playlist = data['playlist'][0]
+              except:
+                pass
+              self.server.app.register_youtube(tagid, playlist, video)
         self.wfile.write(True)
     
     def do_POST(self):

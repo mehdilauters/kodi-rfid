@@ -16,15 +16,15 @@
     <div ng-controller="indexController">
         <div>
             Last tag : {{last}} <button ng-click="register(last)">register</button> <button ng-click="delete(last)">delete</button>
-            <div id="register_container">
+            <div id="register_container" class="masked" >
             <select ng-options="type as type for type in types" ng-model="type" ng-change="register_type_update()"></select>
             
             
-            <div id="register_url" class="register_type_container" >Url <input ng-model="registered_url" ><button ng-click="select_url(last, registered_url)" >Select</button></div>
+            <div id="register_url" class="register_type_container masked" >Url <input ng-model="registered_url" ><button ng-click="select_url(last, registered_url)" >Select</button></div>
             
-            <div id="register_command" class="register_type_container" >Command <input ng-model="registered_command" ><button ng-click="select_command(last, registered_command)" >Select</button></div>
+            <div id="register_command" class="register_type_container masked" >Command <input ng-model="registered_command" ><button ng-click="select_command(last, registered_command)" >Select</button></div>
             
-                <div id="register_album" class="register_type_container" >
+                <div id="register_album" class="register_type_container masked" >
                     <ul>
                         <li ng-repeat="album in albums" class="item" >
                             {{album.title}}
@@ -35,7 +35,7 @@
                     </ul>
                 </div>
                 
-                <div id="register_artist" class="register_type_container" >
+                <div id="register_artist" class="register_type_container masked" >
                     <ul>
                         <li ng-repeat="artist in artists" class="item" >
                             {{artist.artist}}
@@ -44,17 +44,18 @@
                         </li>
                     </ul>
                 </div>
-                <div id="register_action" class="register_type_container" >
+                <div id="register_action" class="register_type_container masked" >
                     <select ng-options="action as action for action in actions" ng-model="registered_action" ></select>
                     <button ng-click="select_action(last, registered_action)" >Select</button>
                 </div>
                 
-                <div id="register_addon" class="register_type_container" >
-                    <select ng-options="addon as addon for addon in addons" ng-model="registered_addon" ng-change="register_addon_update()" ></select>
-                    <div id="register_plugin.video.youtube_container" class="register_addon_container" >
-                    youtuuuuube
+                <div id="register_addon" class="register_type_container masked" >
+                    <select ng-options="addon.id as addon.name for addon in addons" ng-model="registered_addon" ng-change="register_addon_update()" ></select>
+                    <div id="register_plugin_video_youtube_container" class="register_addon_container masked" >
+                    Playlist: <input ng-model="youtube_playlist_id" /><br/>
+                    Video: <input ng-model="youtube_video_id" />
+                    <button ng-click="select_youtube(last, registered_addon, youtube_playlist_id, youtube_video_id)" >Select</button>
                     </div>
-<!--                     <button ng-click="select_addon(last, registered_action)" >Select</button> -->
                 </div>
             </div>
             <hr/>

@@ -289,7 +289,16 @@ class kodiRFIDServer(rfid.RFIDServer):
       q = 'insert into actions_tags (action, tag) values ("%s","%s")'%(action, tag)
       self.query(q)
       self.commit()
-
+  
+  def register_youtube(self, tag, playlist, video):
+    if playlist != "":
+      uri = 'plugin://plugin.video.youtube/play/?order=shuffle&playlist_id=%s'%playlist
+    else:
+      uri = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s'%video
+    q = 'insert into addons_tags (addonid, tag, parameters) values ("plugin.video.youtube", "%s","%s")'%(tag, uri)
+    self.query(q)
+    self.commit()
+  
   def register_tag(self, tag):
     print "registering %s"%tag
     print "please select a type of item"
@@ -374,15 +383,12 @@ class kodiRFIDServer(rfid.RFIDServer):
         itemid = raw_input('Select the id: ')
         
         if self.YOUTUBE_ACTIONS[action] == 'video':
-          uri = 'plugin://plugin.video.youtube/?action=play_video&videoid=%s'%itemid
+          self.register_youtube(tag,"",itemid)
         elif self.YOUTUBE_ACTIONS[action] == 'playlist':
-          uri = 'plugin://plugin.video.youtube/play/?order=shuffle&playlist_id=%s'%itemid
+          self.register_youtube(tag,itemid, "")
         else:
           print 'Invalid action: %s'%action
           return False
-        q = 'insert into addons_tags (addonid, tag, parameters) values ("plugin.video.youtube", "%s","%s")'%(tag, uri)
-        self.query(q)
-        self.commit()
         return True
       else:
         print "unmanaged plugin %s"%addons[addon_index]['addonid']

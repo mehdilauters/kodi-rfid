@@ -165,7 +165,26 @@ app.controller("indexController", function($http, $scope, $location) {
     
     $scope.register_addon_update = function () {
         $(".register_addon_container").hide();
-        $("#register_"+$scope.registered_addon+"_container").show();
+        var elt = "#register_"+$scope.registered_addon.replace(/\./g,'_')+"_container";
+        $(elt).show();
+    }
+    
+    $scope.select_youtube = function(tag, addon, playlist, video) {
+      var data = $.param({
+        addon: addon,
+        playlist: playlist,
+        video: video,
+        tagid: tag
+      });
+      $http.post("/register.json", data, {})
+      .then(
+        function(response){
+          $('#register_container').hide();
+        }, 
+        function(response){
+          console.log(response)
+        }
+      );         
     }
     
     setTimeout($scope.update_last, 1000)
