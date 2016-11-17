@@ -77,7 +77,7 @@ class kodiRFIDServer(rfid.RFIDServer):
     print self.kodi.Player.SetPartyMode(playerid=0, partymode=party)
   
   def delete_tag(self, tag):
-    for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags']:
+    for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags', 'commands_tags']:
       q = 'delete from %s where tag = "%s"'%(t, tag)
       self.query(q)
     self.commit()
@@ -249,6 +249,29 @@ class kodiRFIDServer(rfid.RFIDServer):
     
   def get_availables_albums(self):
       return self.kodi.AudioLibrary.GetAlbums(properties=['artist', 'title', 'thumbnail'])["result"]["albums"]
+ 
+  def get_availables_artists(self):
+      return self.kodi.AudioLibrary.GetArtists(properties=['thumbnail'])["result"]["artists"]
+
+  def register_album(self, tag, albumid):
+      q = 'insert into albums_tags (albumid, tag) values (%s,"%s")'%(albumid, tag)
+      self.query(q)
+      self.commit()
+
+  def register_artist(self, tag, artistid):
+      q = 'insert into artists_tags (artistid, tag) values ("%s","%s")'%(artistid, tag)
+      self.query(q)
+      self.commit()
+
+  def register_url(self, tag, url):
+      q = 'insert into urls_tags (url, tag) values ("%s","%s")'%(url, tag)
+      self.query(q)
+      self.commit()
+      
+  def register_command(self, tag, cmd):
+      q = 'insert into commands_tags (command, tag) values ("%s","%s")'%(cmd, tag)
+      self.query(q)
+      self.commit()
 
   def register_tag(self, tag):
     print "registering %s"%tag
@@ -277,9 +300,7 @@ class kodiRFIDServer(rfid.RFIDServer):
         return False
       
       print "Selected : %s  %s"%(albums[albumid]['artist'], albums[albumid]['title'])
-      q = 'insert into albums_tags (albumid, tag) values (%s,"%s")'%(albumid, tag)
-      self.query(q)
-      self.commit()
+      self.register_album(tag,albumid)
       return True
     elif tag_type == 1: # addon:
       addons = {}
@@ -352,24 +373,20 @@ class kodiRFIDServer(rfid.RFIDServer):
         return False
     elif tag_type == 2: # artist:
       artists = {}
-      artists_raw = self.kodi.AudioLibrary.GetArtists()
-      for artist in artists_raw["result"]["artists"]:
+      for artist in self.get_availables_artists():
         artists[artist['artistid']] = artist
       for key,value in artists.iteritems():
         print "[%s] - %s"%(key, artists[key]['artist'])
       
       artist_index = int(raw_input('Select the artist: '))
       print "selected %s"%artists[artist_index]['artist']
-      q = 'insert into artists_tags (artistid, tag) values ("%s","%s")'%(artists[artist_index]['artistid'], tag)
-      self.query(q)
-      self.commit()
+      self.register_artist(tag, artists[artist_index]['artistid'])
       return True
     elif tag_type == 4: # url:
       print "exemple uri: plugin://plugin.video.youtube/?action=play_video&videoid=7bMYhJ_UqnE, file://tmp/music.mp3"
       url = raw_input('please enter an uri to play: ')
-      q = 'insert into urls_tags (url, tag) values ("%s","%s")'%(url, tag)
-      self.query(q)
-      self.commit()
+      self.register_url(tag, url)
+      return True
     elif tag_type == 5: # action:
       for i,t in enumerate(self.ACTIONS):
         print "- [%s] %s"%(i, t)
@@ -392,9 +409,7 @@ class kodiRFIDServer(rfid.RFIDServer):
         return False
     elif tag_type == 6: # command:
       cmd = raw_input('Enter the full command line: ')
-      q = 'insert into commands_tags (command, tag) values ("%s","%s")'%(cmd, tag)
-      self.query(q)
-      self.commit()
+      self.register_command(tag, cmd)
     else:
       print "unmanaged type %s"%self.TYPES[tag_type]
       

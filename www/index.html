@@ -20,9 +20,9 @@
             <select ng-options="type as type for type in types" ng-model="type" ng-change="register_type_update()"></select>
             
             
-            <div id="register_url" class="register_type_container" >Url <input ng-model="registered_url" ></div>
+            <div id="register_url" class="register_type_container" >Url <input ng-model="registered_url" ><button ng-click="select_url(last, registered_url)" >Select</button></div>
             
-            <div id="register_command" class="register_type_container" >Command <input ng-model="registered_command" ></div>
+            <div id="register_command" class="register_type_container" >Command <input ng-model="registered_command" ><button ng-click="select_command(last, registered_command)" >Select</button></div>
             
                 <div id="register_album" class="register_type_container" >
                     <ul>
@@ -30,10 +30,21 @@
                             {{album.title}}
                             <img class="thumbnail" src="{{album.thumbnail}}" />
                             <span ng-repeat="artist in album.artist" >{{artist}}</span> <br/>
-                            <button ng-click="select_album(album.id)" >Select</button>
+                            <button ng-click="select_album(last, album.albumid)" >Select</button>
                         </li>
                     </ul>
                 </div>
+                
+                <div id="register_artist" class="register_type_container" >
+                    <ul>
+                        <li ng-repeat="artist in artists" class="item" >
+                            {{artist.artist}}
+                            <img class="thumbnail" src="{{artist.thumbnail}}" />
+                            <button ng-click="select_artist(last, artist.artistid)" >Select</button>
+                        </li>
+                    </ul>
+                </div>
+                
             </div>
             <hr/>
         </div>

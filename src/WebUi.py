@@ -7,6 +7,7 @@ import os
 #import PrctlTool
 import re
 import urllib
+import urlparse
 
 class WebuiHTTPHandler(BaseHTTPRequestHandler):
     
@@ -59,6 +60,13 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             albums[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(albums[i]['thumbnail']))
         data = json.dumps(albums)
         self.wfile.write(data)
+        
+    def _get_artists(self):
+        artists = self.server.app.get_availables_artists()
+        for i,a in enumerate(artists):
+            artists[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(artists[i]['thumbnail']))
+        data = json.dumps(artists)
+        self.wfile.write(data)
     
     def _get_tags(self, _type):
       tags = []
@@ -81,12 +89,30 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.server.app.delete_tag(tag)
         self.wfile.write(True)
     
+    def _register(self, data):
+        tagid = data['tagid'][0]
+        if 'albumid' in data.keys():
+            self.server.app.delete_tag(tagid)
+            self.server.app.register_album(tagid, data['albumid'][0])
+        elif 'artistid' in data.keys():
+            self.server.app.delete_tag(tagid)
+            self.server.app.register_artist(tagid, data['artistid'][0])
+        elif 'url' in data.keys():
+            self.server.app.delete_tag(tagid)
+            self.server.app.register_url(tagid, data['url'][0])
+        elif 'command' in data.keys():
+            self.server.app.delete_tag(tagid)
+            self.server.app.register_command(tagid, data['command'][0])
+        self.wfile.write(True)
+    
     def do_POST(self):
       path,params,args = self._parse_url()
       length = int(self.headers['Content-Length'])
       post = self.rfile.read(length)
       if len(args) == 1 and args[0] == 'delete.json':
         return self._delete(post)
+      if len(args) == 1 and args[0] == 'register.json':
+        return self._register(urlparse.parse_qs(urlparse.urlsplit(post).path))
     
     def do_GET(self):
         path,params,args = self._parse_url()
@@ -103,6 +129,8 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return self._get_last()
         if len(args) == 1 and args[0] == 'albums.json':
             return self._get_albums()
+        if len(args) == 1 and args[0] == 'artists.json':
+            return self._get_artists()
         
         return self._get_file(path)
       
