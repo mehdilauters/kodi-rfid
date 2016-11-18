@@ -1,3 +1,4 @@
 www/js/components/
 *.db
 *.pyc
+NativeSDK

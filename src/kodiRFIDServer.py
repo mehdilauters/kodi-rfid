@@ -1,56 +1,27 @@
 #!/usr/bin/env python
 
 import os
-import argparse
-import imp
 import subprocess
-from threading import Lock
-
-from src.WebUi import *
-
-path = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'esp8266-rfid/tools/RFIDServer.py')
-
-rfid = imp.load_source('RFIDServer', path)
 
 from xbmcjson import XBMC, PLAYER_VIDEO
 import json
 import urllib
-import sqlite3
 
 default_baseurl='http://localhost:8080'
 default_database='./kodi-rfid.db'
 playlist_id = 0
 
+from baseRFIDServer import *
 
-def parse_args():
-  parser = argparse.ArgumentParser()
-  parser.add_argument('-p', '--port', help='tcp server port')
-  parser.add_argument("-d", "--database", help="tags database")
-  parser.add_argument("-k", "--kodiurl", help="tags database")
-  parser.add_argument("-e", "--edit", action='store_true', help="tags database")
-  parser.add_argument("-s", "--shuffle", action='store_true', help="shuffle added items")
-  return parser.parse_args()
-
-
-class kodiRFIDServer(rfid.RFIDServer):
+class kodiRFIDServer(baseRFIDServer):
   TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action', 'command']
   ACTIONS = ['play_pause', 'mute','party_mode']
   YOUTUBE_ACTIONS = ['video', 'playlist']
   ADDONS = ['plugin.video.youtube', 'plugin.audio.radio_de', 'plugin.video.arteplussept']
   
   def __init__(self, args):
-    self.args = args
-    rfid.RFIDServer.__init__(self,'0.0.0.0', args.port)
+    baseRFIDServer.__init__(self,args)
     self.kodi = XBMC("%s/jsonrpc"%args.kodiurl)
-    self.db = sqlite3.connect(args.database, check_same_thread=False)
-    self.query_db = self.db.cursor()
-    self.lock = Lock()
-    self.last_tag = None
-
-    try:
-      self.query('''select * from albums_tags''')
-    except:
-      self.createDatabase()
 
   
   def play_arte(self, item):
@@ -428,23 +399,3 @@ class kodiRFIDServer(rfid.RFIDServer):
       
       
     return False
-
-def main(args):
-  if args.port is None:
-   args.port = 4444
-  else:
-   args.port = int(args.port)
-  
-  if args.kodiurl is None:
-    args.kodiurl = default_baseurl
-  if args.database is None:
-    args.database = default_database
-
-  server = kodiRFIDServer(args)
-  
-  httpd = WebuiHTTPServer(("", 8889),server, WebuiHTTPHandler)
-  httpd.start()
-  
-  server.listen()
-
-main(parse_args())
