@@ -1,6 +1,8 @@
 app.controller("indexController", function($http, $scope, $location) {
     $scope.types = [];
     $scope.tags = [];
+    $scope.artists = [];
+    $scope.albums = [];
     
     $scope.last = null;
     var already_loaded = false;

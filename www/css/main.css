@@ -11,3 +11,11 @@
  width:200px;
  height:500px;
 }
+
+.container {
+  width:800px;
+}
+
+ul {
+  list-style-type: none;
+}
