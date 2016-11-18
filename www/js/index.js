@@ -32,8 +32,13 @@ app.controller("indexController", function($http, $scope, $location) {
     }
     
     $scope.register = function (tag) {
-        if($scope.last != null) {
-            $('#register_container').show();
+        element = $('#register_container');
+        if(element.is(":visible")) {
+            element.hide();
+        } else {
+            if($scope.last != null) {
+                element.show();
+            }
         }
         if( ! already_loaded ) {
             already_loaded = true;
@@ -71,7 +76,11 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.update_last = function () {
         $http.get('/last.json').then(response => {
             var last = response.data.id;
-            
+            if(last == null) {
+                $("#register_container_main").hide();
+            } else {
+                $("#register_container_main").show();
+            }
             if(last != $scope.last) {
                 $('#register_container').hide();
             }

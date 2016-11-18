@@ -37,8 +37,13 @@
           </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
       </nav>
-        <div id="register_container_main" class="masked" >
-            Last tag : {{last}} <button ng-click="register(last)">register</button> <button ng-click="delete(last)">delete</button>
+      <div id="register_container_main" class="masked"  class="jumbotron">
+        <h1>{{last}}</h1>
+        <p>
+            <a class="btn btn-primary btn-lg" href="#" role="button"  ng-click="register(last)">Register</a>
+            <a class="btn btn-primary btn-lg" href="#" role="button"  ng-click="delete(last)">Delete</a>
+        </p>
+        <div>
             <div id="register_container" class="masked" >
             <select ng-options="type as type for type in types" ng-model="type" ng-change="register_type_update()"></select>
             
@@ -83,13 +88,19 @@
             </div>
             <hr/>
         </div>
-        <div>
-            <div>
-                <ul>
-                    <li ng-repeat="tag in tags" id="tag_{{tag[1]}}" >
-                        {{tag[1]}} {{tag[0]}} <button ng-click="delete(tag[1])">delete</button>
-                    </li>
-                </ul>
+    </div>
+        <div class="clear" >
+            <div class="media" ng-repeat="tag in tags" id="tag_{{tag[1]}}">
+                <div class="media-left">
+<!--                    <a href="#">
+                        <img class="media-object" src="..." alt="...">
+                    </a>-->
+                </div>
+                <div class="media-body">
+                    <h4 class="media-heading">Tag</h4>
+                    <p ng-repeat="e in tag" >{{e}}</p>
+                    <a href="#" ng-click="delete(tag[1])" class="btn btn-default" role="button">Delete</a>
+                </div>
             </div>
         </div>
     </div>
