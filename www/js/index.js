@@ -1,19 +1,23 @@
 var APP_ID = '215062';
-var CHANNEL_URL = '/player/channel.html';
+// var CHANNEL_URL = '/player/channel.html';
+var CALLBACK = '/player/channel.html'
 
 app.controller("indexController", function($http, $scope, $location) {
     $scope.types = [];
     $scope.tags = [];
     $scope.artists = [];
     $scope.albums = [];
-    
+    $scope.deezer = {};
     $scope.last = null;
     var already_loaded = false;
     
+    var callback = window.location.protocol + '//' + window.location.host + CALLBACK;
+    
     DZ.init({
       appId: APP_ID,
-      channelUrl: CHANNEL_URL,
+      channelUrl: encodeURIComponent(callback),
       player: {
+        container:'player',
         onload: function () { 
         }
       }
@@ -25,6 +29,10 @@ app.controller("indexController", function($http, $scope, $location) {
       
       DZ.login(function(response) {
         if (response.authResponse) {
+          $('#deezer_login').hide();
+          DZ.api('/user/me', function(response){
+            $scope.deezer.username = response.name;
+          });
           console.log('logged');
           $scope.logged();
         } else {
@@ -108,6 +116,37 @@ app.controller("indexController", function($http, $scope, $location) {
             console.log(response)
             setTimeout($scope.update_last, 1000)
         });
+    }
+    
+    $scope.deezer_play = function(item) {
+      console.log("playing")
+      console.log(item);
+      DZ.player.playRadio(item.id, 'artist');
+    }
+    
+    $scope.update_deezer = function () {
+      $http.get('/deezer.json').then(response => {
+        var last = response.data;
+        var play = false;
+        if(!("last" in $scope.deezer)) {
+          if(last.id != '') {
+            play = true;
+          }
+        } else {
+          if((last.type != $scope.deezer.last.type || last.id != $scope.deezer.last.id ) && last.id != '' ) {
+            play = true;
+          }
+        }
+        
+        if(play) {
+          $scope.deezer_play(last);
+        }
+        $scope.deezer.last = last;
+        setTimeout($scope.update_deezer, 1000)
+      }, function errorCallback(response) {
+        console.log(response)
+        setTimeout($scope.update_deezer, 1000)
+      });
     }
     
     $scope.select_command = function(tag, command) {
@@ -217,12 +256,29 @@ app.controller("indexController", function($http, $scope, $location) {
     
     $scope.search_artists = function(query) {
       console.log(query);
-      DZ.api('/search?q=' + query, function(response){
+      ids = []
+      DZ.api('/search?q=' + encodeURIComponent(query), function(response){
+        for(a in response.data) {
+          artist = response.data[a];
+          console.log(ids);
+          console.log(artist.artist.id)
+          console.log(jQuery.inArray(artist.artist.id, ids));
+          if( jQuery.inArray(artist.artist.id, ids) == -1) {
+            console.log(artist.artist.id + artist.artist.name + artist.artist.picture_small )
+            $scope.artists.push({
+              artist: artist.artist.name,
+              artistid: artist.artist.id,
+              thumbnail: artist.artist.picture_small
+            });
+            ids.push(artist.artist.id);
+          }
+        }
         console.log(response.data);
       });
     }
     
     setTimeout($scope.update_last, 1000)
+    setTimeout($scope.update_deezer, 1000)
     
     
 });

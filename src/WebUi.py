@@ -84,6 +84,11 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         data = json.dumps(artists)
         self.wfile.write(data)
     
+    def _get_deezer(self):
+        play = self.server.app.current_play()
+        data = json.dumps(play)
+        self.wfile.write(data)
+    
     def _get_tags(self, _type):
       tags = []
       if _type == 'album':
@@ -168,6 +173,8 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return self._get_actions()
         elif len(args) == 1 and args[0] == 'addons.json':
             return self._get_addons()
+        elif len(args) == 1 and args[0] == 'deezer.json':
+            return self._get_deezer()
         
         return self._get_file(path)
       

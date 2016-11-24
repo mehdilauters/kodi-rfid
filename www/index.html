@@ -15,8 +15,6 @@
 </head>
 <body ng-app="kodi-rfid">
     <div ng-controller="indexController" class="container">
-    <div id="dz-root"></div>
-    <a class="login_link" ng-click="login()">Connect with Deezer</a></div>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
           <!-- Brand and toggle get grouped for better mobile display -->
@@ -105,6 +103,15 @@
                 </div>
             </div>
         </div>
+        <div id="dz-root"></div>
+      <div id="deezer_login">
+        <a class="deezer_link" ng-click="login()">Connect with Deezer</a>
+      </div>
+      <div id="deezer_logout">
+        <a class="deezer_link" ng-click="logout()">{{deezer.username}}</a>
+      </div>
+      <div id="player" style="width:100%;" align="center"></div>
+    </div>
     </div>
 </body>
 </html>

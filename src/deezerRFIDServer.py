@@ -15,11 +15,7 @@ class deezerRFIDServer(baseRFIDServer):
   
   def __init__(self, args):
     baseRFIDServer.__init__(self,args)
-    
-    self.user_access_token = u"8e42555ab120e6a455aa22d89dd4aeef"  # SET your user access token
-    self.your_application_id = u"215062"  # SET your application id
-    self.your_application_name = u"rfid-player"  # SET your application name
-    self.your_application_version = u"00001"  # SET your application version
+    self.current_item = {'id':'', 'type':''}
   
   
   def play_radio(self, item):
@@ -41,6 +37,11 @@ class deezerRFIDServer(baseRFIDServer):
         self.delete_tag(tag)
         return self.register_tag(tag)
       print "==="
+      artistid = self.get_artist(tag)
+      if artistid is not None:
+        self.play_artist(artistid)
+        print artistid
+      
 
   def query(self, query):
     self.query_db.execute(query)
@@ -146,13 +147,17 @@ class deezerRFIDServer(baseRFIDServer):
   def commit(self):
     self.db.commit()
   
+  
+  def current_play(self):
+    return self.current_item
+  
   def clear_playlist(self,pid):
     pass
     #self.party_mode(False)
     #self.kodi.Playlist.Clear(playlistid=pid)
     
-  def play_artist(self, artistid, pid):
-    pass
+  def play_artist(self, artistid):
+    self.current_item = {'id': artistid, 'type': 'artist'}
     #self.clear_playlist(pid)
     #self.kodi.Playlist.Add(playlistid=pid, item={'artistid':artistid})
     #self.kodi.Player.Open(item={'playlistid':pid, 'position':0}, options={"shuffled":self.args.shuffle})
