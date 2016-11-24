@@ -1,3 +1,6 @@
+var APP_ID = '215062';
+var CHANNEL_URL = '/player/channel.html';
+
 app.controller("indexController", function($http, $scope, $location) {
     $scope.types = [];
     $scope.tags = [];
@@ -6,6 +9,36 @@ app.controller("indexController", function($http, $scope, $location) {
     
     $scope.last = null;
     var already_loaded = false;
+    
+    DZ.init({
+      appId: APP_ID,
+      channelUrl: CHANNEL_URL,
+      player: {
+        onload: function () { 
+        }
+      }
+    });
+    
+    
+    $scope.login = function() {
+      console.log('login clicked');
+      
+      DZ.login(function(response) {
+        if (response.authResponse) {
+          console.log('logged');
+          $scope.logged();
+        } else {
+          console.log('not logged');
+        }
+      }, {scope: 'manage_library,basic_access'});
+    };
+    
+    $scope.logged = function() {
+      $scope.logged = true;
+      console.log(LOGNS, 'Player loaded');
+      $('#controls').css('opacity', 1);
+//       $scope.handleRoute();
+    };
     
     $http.get('/types.json').then(response => {
         $scope.types = response.data;
@@ -42,29 +75,13 @@ app.controller("indexController", function($http, $scope, $location) {
         }
         if( ! already_loaded ) {
             already_loaded = true;
-            $http.get('/albums.json').then(response => {
-                $scope.albums = response.data;
-            }, function errorCallback(response) {
-                console.log(response)
-            });
-            
-            $http.get('/artists.json').then(response => {
-                $scope.artists = response.data;
-            }, function errorCallback(response) {
-                console.log(response)
-            });
-            
-            $http.get('/actions.json').then(response => {
-                $scope.actions = response.data;
-            }, function errorCallback(response) {
-                console.log(response)
-            });
-            
-            $http.get('/addons.json').then(response => {
-                $scope.addons = response.data;
-            }, function errorCallback(response) {
-                console.log(response)
-            });
+            for( t in $scope.types) {
+              $http.get('/'+$scope.types[t]+'s.json').then(response => {
+                $scope[$scope.types[t]] = response.data;
+              }, function errorCallback(response) {
+                  console.log(response)
+              });
+            }
         }
     }
     
@@ -196,6 +213,13 @@ app.controller("indexController", function($http, $scope, $location) {
           console.log(response)
         }
       );         
+    }
+    
+    $scope.search_artists = function(query) {
+      console.log(query);
+      DZ.api('/search?q=' + query, function(response){
+        console.log(response.data);
+      });
     }
     
     setTimeout($scope.update_last, 1000)

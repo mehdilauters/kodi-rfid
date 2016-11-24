@@ -9,13 +9,14 @@
 <script src="/js/app.js"></script>
 <script src="/js/index.js"></script>
 <link rel="stylesheet" href="/js/components/bootstrap/dist/css/bootstrap.min.css" media="screen" />
+<script type="text/javascript" src="https://cdns-files.deezer.com/js/min/dz.js"></script> 
 <!-- <link rel="stylesheet" href="/js/components/font-awesome/css/font-awesome.min.css" /> -->
 <link rel="stylesheet" href="/css/main.css" />
 </head>
 <body ng-app="kodi-rfid">
     <div ng-controller="indexController" class="container">
-    
-    
+    <div id="dz-root"></div>
+    <a class="login_link" ng-click="login()">Connect with Deezer</a></div>
     <nav class="navbar navbar-default">
         <div class="container-fluid">
           <!-- Brand and toggle get grouped for better mobile display -->
@@ -64,6 +65,7 @@
                 </div>
                 
                 <div id="register_artist" class="register_type_container masked" >
+                    Search <input type="text" ng-model="search_terms" /> <button ng-click="search_artists(search_terms)" >Select</button>
                     <ul>
                         <li ng-repeat="artist in artists" class="item" >
                             {{artist.artist}}

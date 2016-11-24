@@ -7,52 +7,19 @@ import subprocess
 
 from baseRFIDServer import *
 
-from deezer.deezer_player import *
 
 class deezerRFIDServer(baseRFIDServer):
-  TYPES = ['album', 'addon', 'artist', 'url', 'action', 'command']
+  TYPES = ['album', 'artist', 'url', 'action', 'command']
   ACTIONS = ['play_pause', 'mute','party_mode']
   ADDONS = []
   
   def __init__(self, args):
     baseRFIDServer.__init__(self,args)
     
-    self.user_access_token = u"fr49mph7tV4KY3ukISkFHQysRpdCEbzb958dB320pM15OpFsQs"  # SET your user access token
-    self.your_application_id = u"190262"  # SET your application id
-    self.your_application_name = u"PythonSampleApp"  # SET your application name
+    self.user_access_token = u"8e42555ab120e6a455aa22d89dd4aeef"  # SET your user access token
+    self.your_application_id = u"215062"  # SET your application id
+    self.your_application_name = u"rfid-player"  # SET your application name
     self.your_application_version = u"00001"  # SET your application version
-    if platform.system() == u'Windows':
-      self.user_cache_path = u"c:\\dzr\\dzrcache_NDK_SAMPLE"  # SET the user cache path, the path must exist
-    else:
-      self.user_cache_path = u"/tmp"  # SET the user cache path, the path must exist
-    self.connection = Connection(self, self.your_application_id, self.your_application_name,
-                                     self.your_application_version, self.user_cache_path,
-                                     self.connection_event_callback, 0, 0)
-  
-  
-  # We set the connection callback to launch the player after connection is established
-  @staticmethod
-  def connection_event_callback(handle, event, userdata):
-    """Listen to events and call the appropriate functions
-    :param handle: The connect handle.
-    :type: p_type
-    :param event: The corresponding event.
-        Must be converted using Connection.get_event
-    :type: dz_connect_event_t
-    :param userdata: Any data you want to be passed and used here
-    :type: ctypes.py_object
-    :return: int
-    """
-    # We retrieve our deezerApp
-    #app = cast(userdata, py_object).value
-    event_type = Connection.get_event(event)
-    print(u"++++ CONNECT_EVENT ++++ {0}".format(ConnectionEvent.event_name(event_type)))
-    # After User is authenticated we can start the player
-    #if event_type == ConnectionEvent.USER_LOGIN_OK:
-        #app.player.load(app.context.dz_content_url)
-    #if event_type == ConnectionEvent.USER_LOGIN_FAIL_USER_INFO:
-        #app.shutdown()
-    return 0
   
   
   def play_radio(self, item):
