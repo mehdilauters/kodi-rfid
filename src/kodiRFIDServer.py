@@ -103,6 +103,8 @@ class kodiRFIDServer(baseRFIDServer):
     self.query_db.execute(query)
 
   def createDatabase(self):
+    self.query('''CREATE TABLE version
+      (version integer)''')
     self.query('''CREATE TABLE albums_tags
       (albumid integer, tag text)''')
     self.query('''CREATE TABLE addons_tags

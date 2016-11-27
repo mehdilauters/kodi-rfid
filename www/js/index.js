@@ -28,22 +28,24 @@ app.controller("indexController", function($http, $scope, $location) {
       console.log('login clicked');
       
       DZ.login(function(response) {
-        if (response.authResponse) {
+        if (response.authResponse.accessToken != null) {
+          $scope.deezer.token = response.authResponse.accessToken;
           $('#deezer_login').hide();
+          setTimeout($scope.update_deezer, 1000);
           DZ.api('/user/me', function(response){
             $scope.deezer.username = response.name;
           });
-          console.log('logged');
+          console.log('logged ' + $scope.deezer.token);
           $scope.logged();
+          
         } else {
-          console.log('not logged');
         }
       }, {scope: 'manage_library,basic_access'});
     };
     
     $scope.logged = function() {
       $scope.logged = true;
-      console.log(LOGNS, 'Player loaded');
+      console.log('Player loaded');
       $('#controls').css('opacity', 1);
 //       $scope.handleRoute();
     };
@@ -82,14 +84,23 @@ app.controller("indexController", function($http, $scope, $location) {
             }
         }
         if( ! already_loaded ) {
+          
             already_loaded = true;
-            for( t in $scope.types) {
-              $http.get('/'+$scope.types[t]+'s.json').then(response => {
-                $scope[$scope.types[t]] = response.data;
+            
+            
+            angular.forEach($scope.types, function(t){
+              $http.get('/'+t+'s.json').then(response => {
+                console.log('$scope['+t + 's] = '+response.data);
+                console.log($scope[t + 's']);
+                if( response.data != null ) {
+                  $scope[t + 's'] = response.data;
+                } else {
+                  $scope[t + 's'] = [];
+                }
               }, function errorCallback(response) {
-                  console.log(response)
-              });
-            }
+                console.log(response)
+              }); 
+            });
         }
     }
     
@@ -118,10 +129,24 @@ app.controller("indexController", function($http, $scope, $location) {
         });
     }
     
+    $scope.deezer_play_pause = function() {
+      if(DZ.player.isPlaying()) {
+        DZ.player.pause();
+      } else {
+        DZ.player.play();
+      }
+    }
+    
     $scope.deezer_play = function(item) {
       console.log("playing")
       console.log(item);
-      DZ.player.playRadio(item.id, 'artist');
+      if(item.type == 'artist') {
+        DZ.player.playRadio(item.id, 'artist');
+      } else if(item.type == 'album') {
+        DZ.player.playAlbum(item.id);
+      } else if(item.type == 'action' && item.id == 'play_pause') {
+        $scope.deezer_play_pause();
+      }
     }
     
     $scope.update_deezer = function () {
@@ -254,15 +279,33 @@ app.controller("indexController", function($http, $scope, $location) {
       );         
     }
     
-    $scope.search_artists = function(query) {
-      console.log(query);
+    $scope.search_albums = function(query) {
+      $scope.albums = [];
       ids = []
       DZ.api('/search?q=' + encodeURIComponent(query), function(response){
         for(a in response.data) {
+          album = response.data[a];
+          if( jQuery.inArray(album.album.id, ids) == -1) {
+            console.log(album.album.id + album.album.name + album.album.cover_small )
+            $scope.albums.push({
+              title: album.album.name,
+              artist: [album.artist.name],
+              albumid: album.album.id,
+              thumbnail: album.album.cover_medium
+            });
+            ids.push(album.album.id);
+          }
+        }
+        console.log(response.data);
+      });
+    }
+    
+    $scope.search_artists = function(query) {
+      $scope.artists = [];
+      ids = [];
+      DZ.api('/search?q=' + encodeURIComponent(query), function(response){
+        for(a in response.data) {
           artist = response.data[a];
-          console.log(ids);
-          console.log(artist.artist.id)
-          console.log(jQuery.inArray(artist.artist.id, ids));
           if( jQuery.inArray(artist.artist.id, ids) == -1) {
             console.log(artist.artist.id + artist.artist.name + artist.artist.picture_small )
             $scope.artists.push({
@@ -277,8 +320,9 @@ app.controller("indexController", function($http, $scope, $location) {
       });
     }
     
+    $scope.login();
+    
     setTimeout($scope.update_last, 1000)
-    setTimeout($scope.update_deezer, 1000)
     
     
 });

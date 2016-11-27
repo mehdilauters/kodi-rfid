@@ -10,7 +10,7 @@ from baseRFIDServer import *
 
 class deezerRFIDServer(baseRFIDServer):
   TYPES = ['album', 'artist', 'url', 'action', 'command']
-  ACTIONS = ['play_pause', 'mute','party_mode']
+  ACTIONS = ['play_pause']
   ADDONS = []
   
   def __init__(self, args):
@@ -22,8 +22,7 @@ class deezerRFIDServer(baseRFIDServer):
     self.kodi.Player.Open(item={'file':item})
   
   def play_pause(self):
-    for p in self.get_active_player():
-      self.kodi.Player.PlayPause(playerid=p['playerid'])
+    self.current_item = {'id': 'play_pause', 'type':'action'}
   
   def delete_tag(self, tag):
     for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags', 'commands_tags']:
@@ -41,12 +40,27 @@ class deezerRFIDServer(baseRFIDServer):
       if artistid is not None:
         self.play_artist(artistid)
         print artistid
+      else:
+        albumid = self.get_album(tag)
+        if albumid is not None:
+          self.play_album(albumid)
+          print albumid
+        else:
+          action = self.get_action(tag)
+          if action is not None:
+            if action == 'play_pause':
+              self.play_pause()
+            else:
+              print "action not available"
+            
       
 
   def query(self, query):
     self.query_db.execute(query)
 
   def createDatabase(self):
+    self.query('''CREATE TABLE version
+      (version integer)''')
     self.query('''CREATE TABLE albums_tags
       (albumid integer, tag text)''')
     self.query('''CREATE TABLE addons_tags
@@ -149,7 +163,9 @@ class deezerRFIDServer(baseRFIDServer):
   
   
   def current_play(self):
-    return self.current_item
+    item = self.current_item
+    self.current_item = {'id':'', 'type':''}
+    return item
   
   def clear_playlist(self,pid):
     pass
@@ -162,18 +178,18 @@ class deezerRFIDServer(baseRFIDServer):
     #self.kodi.Playlist.Add(playlistid=pid, item={'artistid':artistid})
     #self.kodi.Player.Open(item={'playlistid':pid, 'position':0}, options={"shuffled":self.args.shuffle})
   
-  def play_album(self, albumid, pid):
-    pass
+  def play_album(self, albumid):
+    print "===>%s"%albumid
+    self.current_item = {'id': albumid, 'type': 'album'}
     #self.clear_playlist(pid)
     #self.kodi.Playlist.Add(playlistid=pid, item={'albumid':albumid})
     #self.kodi.Player.Open(item={'playlistid':pid, 'position':0}, options={"shuffled":self.args.shuffle})
     
   def get_availables_albums(self):
-      return self.kodi.AudioLibrary.GetAlbums(properties=['artist', 'title', 'thumbnail'])["result"]["albums"]
+      return
  
   def get_availables_artists(self):
-      return self.kodi.AudioLibrary.GetArtists(properties=['thumbnail'])["result"]["artists"]
-
+      return
 
   def get_availables_actions(self):
       return self.ACTIONS

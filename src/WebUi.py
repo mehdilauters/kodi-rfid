@@ -62,7 +62,7 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             'id':a,
             'name': a.replace('.','_'),
             })
-        data = json.dumps(addons)
+          data = json.dumps(addons)
         self.wfile.write(data)
     
     def _get_last(self):
@@ -72,21 +72,35 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
     
     def _get_albums(self):
         albums = self.server.app.get_availables_albums()
-        for i,a in enumerate(albums):
-            albums[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(albums[i]['thumbnail']))
-        data = json.dumps(albums)
+        data = {}
+        if albums is not None:
+          for i,a in enumerate(albums):
+              albums[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(albums[i]['thumbnail']))
+          data = json.dumps(albums)
         self.wfile.write(data)
         
     def _get_artists(self):
         artists = self.server.app.get_availables_artists()
-        for i,a in enumerate(artists):
-            artists[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(artists[i]['thumbnail']))
-        data = json.dumps(artists)
+        data = {}
+        if artists is not None:
+          for i,a in enumerate(artists):
+              artists[i]['thumbnail'] = "%s/image/%s"%(self.server.app.args.kodiurl,urllib.quote_plus(artists[i]['thumbnail']))
+          data = json.dumps(artists)
         self.wfile.write(data)
     
     def _get_deezer(self):
         play = self.server.app.current_play()
         data = json.dumps(play)
+        self.wfile.write(data)
+
+    def _get_commands(self):
+        commands =  []
+        data = json.dumps(commands)
+        self.wfile.write(data)
+
+    def _get_urls(self):
+        urls =  []
+        data = json.dumps(urls)
         self.wfile.write(data)
     
     def _get_tags(self, _type):
@@ -167,6 +181,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return self._get_last()
         elif len(args) == 1 and args[0] == 'albums.json':
             return self._get_albums()
+        elif len(args) == 1 and args[0] == 'urls.json':
+            return self._get_urls()
+        elif len(args) == 1 and args[0] == 'commands.json':
+            return self._get_commands()
         elif len(args) == 1 and args[0] == 'artists.json':
             return self._get_artists()
         elif len(args) == 1 and args[0] == 'actions.json':

@@ -15,5 +15,7 @@ class baseRFIDServer(rfid.RFIDServer):
     self.lock = Lock()
     self.last_tag = None
     
-    if not os.path.exists(self.args.database):
-        self.createDatabase()
+    try:
+      self.query('''select * from version''')
+    except:
+      self.createDatabase()
