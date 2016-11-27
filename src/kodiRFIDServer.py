@@ -21,6 +21,7 @@ class kodiRFIDServer(baseRFIDServer):
   
   def __init__(self, args):
     baseRFIDServer.__init__(self,args)
+    self.name = 'kodi'
     self.kodi = XBMC("%s/jsonrpc"%args.kodiurl)
 
   

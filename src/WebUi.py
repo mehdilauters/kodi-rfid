@@ -103,6 +103,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         data = json.dumps(urls)
         self.wfile.write(data)
     
+    def _get_mode(self):
+        data = json.dumps(self.server.app.name)
+        self.wfile.write(data)
+    
     def _get_tags(self, _type):
       tags = []
       if _type == 'album':
@@ -173,6 +177,8 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return
         if len(args) == 1 and args[0] == '':
             path = 'index.html'
+        elif len(args) == 1 and args[0] == 'mode.json':
+            return self._get_mode()
         elif len(args) == 1 and args[0] == 'types.json':
             return self._get_types()
         elif len(args) == 1 and args[0] == 'tags.json':

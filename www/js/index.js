@@ -9,20 +9,47 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.albums = [];
     $scope.deezer = {};
     $scope.last = null;
+    $scope.deezer_mode = false;
+    
+    var tag_timeout = 2;
+    var deezer_timeout = 500;
+    
     var already_loaded = false;
     
     var callback = window.location.protocol + '//' + window.location.host + CALLBACK;
     
-    DZ.init({
-      appId: APP_ID,
-      channelUrl: encodeURIComponent(callback),
-      player: {
-        container:'player',
-        onload: function () { 
-        }
-      }
-    });
+    var deezer_init = function() {
+      DZ.init({
+        appId: APP_ID,
+        channelUrl: encodeURIComponent(callback),
+              player: {
+                container:'player',
+              onload: function () { 
+              }
+              }
+      });
+      
+      $scope.login();
+    }
     
+    var init = function() {
+      
+      $http.get('/types.json').then(response => {
+        $scope.types = response.data;
+      }, function errorCallback(response) {
+      });
+      
+      $http.get('/mode.json').then(response => {
+        mode = response.data;
+        console.log(mode);
+        if(mode == '"deezer"') {
+          $scope.deezer_mode = true;
+          deezer_init();
+        }
+        
+      }, function errorCallback(response) {
+      }); 
+    }
     
     $scope.login = function() {
       console.log('login clicked');
@@ -31,7 +58,7 @@ app.controller("indexController", function($http, $scope, $location) {
         if (response.authResponse.accessToken != null) {
           $scope.deezer.token = response.authResponse.accessToken;
           $('#deezer_login').hide();
-          setTimeout($scope.update_deezer, 1000);
+          setTimeout($scope.update_deezer, deezer_timeout);
           DZ.api('/user/me', function(response){
             $scope.deezer.username = response.name;
           });
@@ -49,11 +76,6 @@ app.controller("indexController", function($http, $scope, $location) {
       $('#controls').css('opacity', 1);
 //       $scope.handleRoute();
     };
-    
-    $http.get('/types.json').then(response => {
-        $scope.types = response.data;
-    }, function errorCallback(response) {
-    });
     
     $scope.select_type = function (type) {
         $http.get('/tags.json?type='+type).then(response => {
@@ -122,10 +144,10 @@ app.controller("indexController", function($http, $scope, $location) {
             }
             
             $scope.last = last;
-            setTimeout($scope.update_last, 1000)
+            setTimeout($scope.update_last, tag_timeout)
         }, function errorCallback(response) {
             console.log(response)
-            setTimeout($scope.update_last, 1000)
+            setTimeout($scope.update_last, tag_timeout)
         });
     }
     
@@ -167,10 +189,10 @@ app.controller("indexController", function($http, $scope, $location) {
           $scope.deezer_play(last);
         }
         $scope.deezer.last = last;
-        setTimeout($scope.update_deezer, 1000)
+        setTimeout($scope.update_deezer, deezer_timeout)
       }, function errorCallback(response) {
         console.log(response)
-        setTimeout($scope.update_deezer, 1000)
+        setTimeout($scope.update_deezer, deezer_timeout)
       });
     }
     
@@ -320,9 +342,8 @@ app.controller("indexController", function($http, $scope, $location) {
       });
     }
     
-    $scope.login();
-    
-    setTimeout($scope.update_last, 1000)
+    init();
+//     $scope.update_last();
     
     
 });

@@ -36,8 +36,18 @@
           </div><!-- /.navbar-collapse -->
         </div><!-- /.container-fluid -->
       </nav>
-      <div id="register_container_main" class="masked"  class="jumbotron">
-        <h1>{{last}}</h1>
+        <div>
+          <div id="dz-root"></div>
+            <div ng-if="deezer_mode" id="deezer_login">
+              <a class="deezer_link" ng-click="login()">Connect with Deezer</a>
+            </div>
+            <div id="deezer_logout">
+              <a class="deezer_link" ng-click="logout()">{{deezer.username}}</a>
+            </div>
+            <div id="player" style="width:100%;" align="center"></div>
+      <div>
+      <div id="register_container_main" class="masked">
+        <h3>{{last}}</h3>
         <p>
             <a class="btn btn-primary btn-lg" href="#" role="button"  ng-click="register(last)">Register</a>
             <a class="btn btn-primary btn-lg" href="#" role="button"  ng-click="delete(last)">Delete</a>
@@ -75,7 +85,6 @@
                 </div>
                 <div id="register_action"
                 class="register_type_container masked" >
-                {{action}} === {{actions}}
                     <select ng-options="action as action for action in actions" ng-model="registered_action" ></select>
                     <button ng-click="select_action(last, registered_action)" >Select</button>
                 </div>
@@ -92,7 +101,6 @@
             <hr/>
         </div>
     </div>
-        <div class="clear" >
             <div class="media" ng-repeat="tag in tags" id="tag_{{tag[1]}}">
                 <div class="media-left">
 <!--                    <a href="#">
@@ -106,14 +114,6 @@
                 </div>
             </div>
         </div>
-        <div id="dz-root"></div>
-      <div id="deezer_login">
-        <a class="deezer_link" ng-click="login()">Connect with Deezer</a>
-      </div>
-      <div id="deezer_logout">
-        <a class="deezer_link" ng-click="logout()">{{deezer.username}}</a>
-      </div>
-      <div id="player" style="width:100%;" align="center"></div>
     </div>
     </div>
 </body>
