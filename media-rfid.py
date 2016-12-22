@@ -48,6 +48,7 @@ def main(args):
   if args.www is not None:
     args.www = int(args.www)
     httpd = WebuiHTTPServer(("", args.www),server, WebuiHTTPHandler)
+    httpd.www_directory = '%s/www'%os.path.dirname(os.path.realpath(__file__))
     httpd.start()
   
   server.listen()
