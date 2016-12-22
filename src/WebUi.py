@@ -213,6 +213,14 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
               self.server.app.register_youtube(tagid, playlist, video)
         self.wfile.write(True)
     
+    def _get_tag(self, serial, tagid):
+      self.send_response(200)
+      self.send_header('Content-type','application/json')
+      self.send_header('Access-Control-Allow-Origin','*')
+      self.end_headers()
+      print "===>%s"%tagid
+      self.server.app.on_tag_received(tagid)
+    
     def do_POST(self):
       path,params,args = self._parse_url()
       length = int(self.headers['Content-Length'])
@@ -251,6 +259,13 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             return self._get_addons()
         elif len(args) == 1 and args[0] == 'deezer.json':
             return self._get_deezer()
+        elif len(args) == 1 and args[0] == 'tag.json':
+            if params is not None:
+              m = re.match(
+                  r"serial=(.*)\&tagid=(.*)",params)
+              if m is not None:
+                serial,tagid = m.groups()
+                return self._get_tag(serial, tagid)
         
         return self._get_file(path)
       
