@@ -24,6 +24,7 @@ def parse_args():
   parser.add_argument("-e", "--edit", action='store_true', help="tags database")
   parser.add_argument("-s", "--shuffle", action='store_true', help="shuffle added items")
   parser.add_argument("-m", "--mode", action='store_true', help="deezer version")
+  parser.add_argument("-w", "--www", help="webui port")
   return parser.parse_args()
 
 
@@ -44,8 +45,10 @@ def main(args):
   else:
     server = deezerRFIDServer(args)
   
-  httpd = WebuiHTTPServer(("", 8889),server, WebuiHTTPHandler)
-  httpd.start()
+  if args.www is not None:
+    args.www = int(args.www)
+    httpd = WebuiHTTPServer(("", args.www),server, WebuiHTTPHandler)
+    httpd.start()
   
   server.listen()
 

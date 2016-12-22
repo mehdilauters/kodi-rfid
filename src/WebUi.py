@@ -45,16 +45,28 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
                 self.send_500(str(e))
     
     def _get_types(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         types = self.server.app.get_availables_types()
         data = json.dumps(types)
         self.wfile.write(data)
         
     def _get_actions(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         actions = self.server.app.get_availables_actions()
         data = json.dumps(actions)
         self.wfile.write(data)
         
     def _get_addons(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         addons_raw = self.server.app.get_availables_addons()
         addons = []
         for a in addons_raw:
@@ -66,11 +78,19 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
     
     def _get_last(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         last = self.server.app.last_tag
         data = json.dumps({'id':last})
         self.wfile.write(data)
     
     def _get_albums(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         albums = self.server.app.get_availables_albums()
         data = {}
         if albums is not None:
@@ -80,6 +100,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
         
     def _get_artists(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         artists = self.server.app.get_availables_artists()
         data = {}
         if artists is not None:
@@ -89,25 +113,45 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(data)
     
     def _get_deezer(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         play = self.server.app.current_play()
         data = json.dumps(play)
         self.wfile.write(data)
 
     def _get_commands(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         commands =  []
         data = json.dumps(commands)
         self.wfile.write(data)
 
     def _get_urls(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         urls =  []
         data = json.dumps(urls)
         self.wfile.write(data)
     
     def _get_mode(self):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         data = json.dumps(self.server.app.name)
         self.wfile.write(data)
     
     def _get_tags(self, _type):
+      self.send_response(200)
+      self.send_header('Content-type','application/json')
+      self.send_header('Access-Control-Allow-Origin','*')
+      self.end_headers()
       tags = []
       if _type == 'album':
           tags = self.server.app.get_albums()
@@ -125,10 +169,18 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
       self.wfile.write(data)
     
     def _delete(self, tag):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         self.server.app.delete_tag(tag)
         self.wfile.write(True)
     
     def _register(self, data):
+        self.send_response(200)
+        self.send_header('Content-type','application/json')
+        self.send_header('Access-Control-Allow-Origin','*')
+        self.end_headers()
         tagid = data['tagid'][0]
         if 'albumid' in data.keys():
             self.server.app.delete_tag(tagid)
