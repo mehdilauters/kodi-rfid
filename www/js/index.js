@@ -42,7 +42,7 @@ app.controller("indexController", function($http, $scope, $location) {
       $http.get('/mode.json').then(response => {
         mode = response.data;
         console.log(mode);
-        if(mode == '"deezer"') {
+        if(mode == 'deezer') {
           $scope.deezer_mode = true;
           deezer_init();
         }
