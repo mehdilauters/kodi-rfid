@@ -15,7 +15,7 @@ from baseRFIDServer import *
 
 class kodiRFIDServer(baseRFIDServer):
   TYPES = ['album', 'addon', 'artist', 'video', 'url', 'action', 'command']
-  ACTIONS = ['play_pause', 'mute','party_mode']
+  ACTIONS = ['play_pause', 'mute','party_mode', 'volume_up', 'volume_down', 'next']
   YOUTUBE_ACTIONS = ['video', 'playlist']
   ADDONS = ['plugin.video.youtube', 'plugin.audio.radio_de', 'plugin.video.arteplussept']
   
@@ -49,6 +49,12 @@ class kodiRFIDServer(baseRFIDServer):
   def party_mode(self, party=True):
     print self.kodi.Player.SetPartyMode(playerid=0, partymode=party)
   
+  def volume_up(self):
+    print self.kodi.Application.SetVolume(volume='increment')
+    
+  def volume_down(self):
+    print self.kodi.Application.SetVolume(volume='decrement')
+  
   def delete_tag(self, tag):
     for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags', 'commands_tags']:
       q = 'delete from %s where tag = "%s"'%(t, tag)
@@ -59,6 +65,10 @@ class kodiRFIDServer(baseRFIDServer):
     self.kodi.Player.Open(item={'file':uri})
     if 'playlist_id' in uri:
       self.kodi.Player.Open(item={'playlistid':1, 'position':0})
+  
+  def next(self):
+    for p in self.get_active_player():
+      self.kodi.Player.GoTo(playerid=p['playerid'], to='next')
   
   def on_tag_received(self, tag):
       self.last_tag = tag
@@ -89,6 +99,12 @@ class kodiRFIDServer(baseRFIDServer):
                 self.play_pause()
               elif action == 'party_mode':
                 self.party_mode()
+              elif action == 'volume_up':
+                self.volume_up()
+              elif action == 'volume_down':
+                self.volume_down()
+              elif  action == 'next':
+                self.next()
             else:
               url = self.get_url(tag)
               if url is not None:
@@ -260,6 +276,7 @@ class kodiRFIDServer(baseRFIDServer):
       self.commit()
 
   def register_action(self, tag, action):
+      print "registeeeeer"
       q = 'insert into actions_tags (action, tag) values ("%s","%s")'%(action, tag)
       self.query(q)
       self.commit()

@@ -10,7 +10,7 @@ from baseRFIDServer import *
 
 class deezerRFIDServer(baseRFIDServer):
   TYPES = ['album', 'artist', 'action', 'command']
-  ACTIONS = ['play_pause']
+  ACTIONS = ['play_pause', 'volume_up', 'volume_down', 'next']
   ADDONS = []
   
   def __init__(self, args):
@@ -24,6 +24,15 @@ class deezerRFIDServer(baseRFIDServer):
   
   def play_pause(self):
     self.current_item = {'id': 'play_pause', 'type':'action'}
+  
+  def volume_up(self):
+    self.current_item = {'id': 'volume_up', 'type':'action'}
+
+  def volume_down(self):
+    self.current_item = {'id': 'volume_down', 'type':'action'}
+    
+  def next(self):
+    self.current_item = {'id': 'next', 'type':'action'}
   
   def delete_tag(self, tag):
     for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags', 'commands_tags']:
@@ -50,6 +59,12 @@ class deezerRFIDServer(baseRFIDServer):
           if action is not None:
             if action == 'play_pause':
               self.play_pause()
+            elif action == 'volume_up':
+              self.volume_up()
+            elif action == 'volume_down':
+              self.volume_down()
+            elif  action == 'next':
+              self.next()
             else:
               print "action not available"
             

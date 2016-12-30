@@ -11,7 +11,7 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.last = null;
     $scope.deezer_mode = false;
     
-    var tag_timeout = 2;
+    var tag_timeout = 200;
     var deezer_timeout = 500;
     
     var already_loaded = false;
@@ -343,7 +343,7 @@ app.controller("indexController", function($http, $scope, $location) {
     }
     
     init();
-//     $scope.update_last();
+    $scope.update_last();
     
     
 });
