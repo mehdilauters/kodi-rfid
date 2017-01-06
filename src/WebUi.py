@@ -77,13 +77,15 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           data = json.dumps(addons)
         self.wfile.write(data)
     
-    def _get_last(self):
+    def _get_last(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        last = self.server.app.last_tag
-        data = json.dumps({'id':last})
+        data = {}
+        if self.server.app.last_tag.has_key(serial):
+          last = self.server.app.last_tag[serial]
+          data = json.dumps({'id':last})
         self.wfile.write(data)
     
     def _get_albums(self):
@@ -211,15 +213,14 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
               except:
                 pass
               self.server.app.register_youtube(tagid, playlist, video)
-        self.wfile.write(True)
+        self.wfile.write(json.dumps({'result':True}))
     
     def _get_tag(self, serial, tagid):
       self.send_response(200)
       self.send_header('Content-type','application/json')
       self.send_header('Access-Control-Allow-Origin','*')
       self.end_headers()
-      print "===>%s"%tagid
-      self.server.app.on_tag_received(tagid)
+      self.server.app.on_tag_received(serial, tagid)
     
     def do_POST(self):
       path,params,args = self._parse_url()
@@ -244,7 +245,13 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         elif len(args) == 1 and args[0] == 'tags.json':
             return self._get_tags(params.split("=")[1])
         elif len(args) == 1 and args[0] == 'last.json':
-            return self._get_last()
+            serial = ''
+            if params is not None:
+              m = re.match(
+                  r"serial=(.*)",params)
+              if m is not None:
+                serial = m.groups()
+            return self._get_last(serial)
         elif len(args) == 1 and args[0] == 'albums.json':
             return self._get_albums()
         elif len(args) == 1 and args[0] == 'urls.json':

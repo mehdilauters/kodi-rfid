@@ -70,8 +70,8 @@ class kodiRFIDServer(baseRFIDServer):
     for p in self.get_active_player():
       self.kodi.Player.GoTo(playerid=p['playerid'], to='next')
   
-  def on_tag_received(self, tag):
-      self.last_tag = tag
+  def on_tag_received(self, tag, serial = ''):
+      self.last_tag[serial] = tag
       if self.args.edit:
         self.delete_tag(tag)
         return self.register_tag(tag)

@@ -13,7 +13,7 @@ class baseRFIDServer(rfid.RFIDServer):
     self.db = sqlite3.connect(args.database, check_same_thread=False)
     self.query_db = self.db.cursor()
     self.lock = Lock()
-    self.last_tag = None
+    self.last_tag = {}
     
     try:
       self.query('''select * from version''')

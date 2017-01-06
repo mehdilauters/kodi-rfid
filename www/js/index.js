@@ -1,6 +1,5 @@
 var APP_ID = '215062';
-// var CHANNEL_URL = '/player/channel.html';
-var CALLBACK = '/player/channel.html'
+var CALLBACK = '/'
 
 app.controller("indexController", function($http, $scope, $location) {
     $scope.types = [];
@@ -10,9 +9,11 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.deezer = {};
     $scope.last = null;
     $scope.deezer_mode = false;
+    $scope.deezer_volume_step = 10;
+    $scope.serial='';
     
-    var tag_timeout = 200;
-    var deezer_timeout = 500;
+    var tag_timeout = 1000;
+    var deezer_timeout = 1000;
     
     var already_loaded = false;
     
@@ -61,11 +62,13 @@ app.controller("indexController", function($http, $scope, $location) {
           setTimeout($scope.update_deezer, deezer_timeout);
           DZ.api('/user/me', function(response){
             $scope.deezer.username = response.name;
+            console.log($scope.deezer.username);
           });
           console.log('logged ' + $scope.deezer.token);
           $scope.logged();
           
         } else {
+          console.log(response);
         }
       }, {scope: 'manage_library,basic_access'});
     };
@@ -132,7 +135,7 @@ app.controller("indexController", function($http, $scope, $location) {
     }
     
     $scope.update_last = function () {
-        $http.get('/last.json').then(response => {
+        $http.get('/last.json?serial='+$scope.serial).then(response => {
             var last = response.data.id;
             if(last == null) {
                 $("#register_container_main").hide();
@@ -159,8 +162,7 @@ app.controller("indexController", function($http, $scope, $location) {
       }
     }
     
-    $scope.deezer_play = function(item) {
-      console.log("playing")
+    $scope.deezer_action = function(item) {
       console.log(item);
       if(item.type == 'artist') {
         DZ.player.playRadio(item.id, 'artist');
@@ -168,7 +170,27 @@ app.controller("indexController", function($http, $scope, $location) {
         DZ.player.playAlbum(item.id);
       } else if(item.type == 'action' && item.id == 'play_pause') {
         $scope.deezer_play_pause();
+      } else if(item.type == 'action' && item.id == 'volume_down') {
+        $scope.deezer_volume_down();
+      } else if(item.type == 'action' && item.id == 'volume_up') {
+        $scope.deezer_volume_up();
+      } else if(item.type == 'action' && item.id == 'next') {
+        $scope.deezer_next();
       }
+    }
+    
+    $scope.deezer_next = function() {
+      DZ.player.next();
+    }
+    
+    $scope.deezer_volume_down = function(item) {
+      console.log('down!');
+      DZ.player.setVolume(DZ.player.getVolume() - $scope.deezer_volume_step);
+    }
+    
+    $scope.deezer_volume_up = function(item) {
+      console.log('up!');
+      DZ.player.setVolume(DZ.player.getVolume() + $scope.deezer_volume_step);
     }
     
     $scope.update_deezer = function () {
@@ -186,7 +208,7 @@ app.controller("indexController", function($http, $scope, $location) {
         }
         
         if(play) {
-          $scope.deezer_play(last);
+          $scope.deezer_action(last);
         }
         $scope.deezer.last = last;
         setTimeout($scope.update_deezer, deezer_timeout)
