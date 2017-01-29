@@ -5,6 +5,7 @@
 <script src="/js/components/jquery/dist/jquery.js"></script>
 <script src="/js/components/jquery-ui/jquery-ui.js"></script>
 <script src="/js/components/angular/angular.js"></script>
+<script src="/js/components/angular-cookies/angular-cookies.min.js"></script>
 <script src="/js/components/bootstrap/dist/js/bootstrap.min.js"></script>
 <script src="/js/app.js"></script>
 <script src="/js/index.js"></script>
@@ -47,7 +48,7 @@
             <div id="player" style="width:100%;" align="center"></div>
       <div>
       <div>
-        <label>Serial Number</label><input ng-model="serial" />
+        <label>Serial Number</label><input ng-model="serial" /><button ng-click="save_serial()" >Save</button>
       </div>
       <div id="register_container_main" class="masked">
         <h3>{{last}}</h3>

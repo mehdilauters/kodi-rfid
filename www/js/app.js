@@ -1,1 +1,1 @@
-var app =  angular.module('kodi-rfid', []);
+var app =  angular.module('kodi-rfid', ['ngCookies']);

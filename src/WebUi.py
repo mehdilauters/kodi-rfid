@@ -83,10 +83,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
         data = {}
-        if self.server.app.last_tag.has_key(serial):
+        if serial in self.server.app.last_tag:
           last = self.server.app.last_tag[serial]
-          data = json.dumps({'id':last})
-        self.wfile.write(data)
+          data = {'id':last}
+        self.wfile.write(json.dumps(data))
     
     def _get_albums(self):
         self.send_response(200)
@@ -149,24 +149,24 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         data = json.dumps(self.server.app.name)
         self.wfile.write(data)
     
-    def _get_tags(self, _type):
+    def _get_tags(self, _serial, _type):
       self.send_response(200)
       self.send_header('Content-type','application/json')
       self.send_header('Access-Control-Allow-Origin','*')
       self.end_headers()
       tags = []
       if _type == 'album':
-          tags = self.server.app.get_albums()
+          tags = self.server.app.get_albums(_serial)
       elif _type == 'addon':
-          tags = self.server.app.get_addons()
+          tags = self.server.app.get_addons(_serial)
       elif _type == 'artist':
-          tags = self.server.app.get_artists()    
+          tags = self.server.app.get_artists(_serial)
       elif _type == 'action':
-          tags = self.server.app.get_actions()
+          tags = self.server.app.get_actions(_serial)
       elif _type == 'url':
-          tags = self.server.app.get_urls()
+          tags = self.server.app.get_urls(_serial)
       elif _type == 'command':
-          tags = self.server.app.get_commands()
+          tags = self.server.app.get_commands(_serial)
       data = json.dumps(tags)
       self.wfile.write(data)
     
@@ -184,21 +184,22 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
         tagid = data['tagid'][0]
+        serial = data['serial'][0]
         if 'albumid' in data.keys():
             self.server.app.delete_tag(tagid)
-            self.server.app.register_album(tagid, data['albumid'][0])
+            self.server.app.register_album(serial, tagid, data['albumid'][0])
         elif 'artistid' in data.keys():
             self.server.app.delete_tag(tagid)
-            self.server.app.register_artist(tagid, data['artistid'][0])
+            self.server.app.register_artist(serial, tagid, data['artistid'][0])
         elif 'url' in data.keys():
             self.server.app.delete_tag(tagid)
-            self.server.app.register_url(tagid, data['url'][0])
+            self.server.app.register_url(serial, tagid, data['url'][0])
         elif 'command' in data.keys():
             self.server.app.delete_tag(tagid)
-            self.server.app.register_command(tagid, data['command'][0])
+            self.server.app.register_command(serial, tagid, data['command'][0])
         elif 'action' in data.keys():
             self.server.app.delete_tag(tagid)
-            self.server.app.register_action(tagid, data['action'][0])
+            self.server.app.register_action(serial, tagid, data['action'][0])
         elif 'addon' in data.keys():
             if data['addon'][0] == 'plugin.video.youtube':
               self.server.app.delete_tag(tagid)
@@ -216,11 +217,12 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.wfile.write(json.dumps({'result':True}))
     
     def _get_tag(self, serial, tagid):
+      print "received tag %s from %s"%(tagid, serial)
       self.send_response(200)
       self.send_header('Content-type','application/json')
       self.send_header('Access-Control-Allow-Origin','*')
       self.end_headers()
-      self.server.app.on_tag_received(serial, tagid)
+      self.server.app.on_tag_received(tagid, serial)
     
     def do_POST(self):
       path,params,args = self._parse_url()
@@ -243,14 +245,21 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         elif len(args) == 1 and args[0] == 'types.json':
             return self._get_types()
         elif len(args) == 1 and args[0] == 'tags.json':
-            return self._get_tags(params.split("=")[1])
+          serial = ''
+          if params is not None:
+            m = re.match(
+                r"serial=(.*)\&type=(.*)",params)
+            if m is not None:
+              serial = m.groups()[0]
+              t = m.groups()[1]
+          return self._get_tags(serial, t)
         elif len(args) == 1 and args[0] == 'last.json':
             serial = ''
             if params is not None:
               m = re.match(
                   r"serial=(.*)",params)
               if m is not None:
-                serial = m.groups()
+                serial = m.groups()[0]
             return self._get_last(serial)
         elif len(args) == 1 and args[0] == 'albums.json':
             return self._get_albums()

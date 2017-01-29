@@ -1,7 +1,7 @@
 var APP_ID = '215062';
 var CALLBACK = '/'
 
-app.controller("indexController", function($http, $scope, $location) {
+app.controller("indexController", function($http, $scope, $location, $cookieStore) {
     $scope.types = [];
     $scope.tags = [];
     $scope.artists = [];
@@ -10,7 +10,11 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.last = null;
     $scope.deezer_mode = false;
     $scope.deezer_volume_step = 10;
-    $scope.serial='';
+    $scope.serial=$cookieStore.get('serial');
+    
+    if( $scope.serial === undefined ) {
+      $scope.serial = ''
+    }
     
     var tag_timeout = 1000;
     var deezer_timeout = 1000;
@@ -52,6 +56,11 @@ app.controller("indexController", function($http, $scope, $location) {
       }); 
     }
     
+    $scope.save_serial = function() {
+      $cookieStore.put('serial',$scope.serial)
+      console.log($scope.serial)
+    }
+    
     $scope.login = function() {
       console.log('login clicked');
       
@@ -81,7 +90,7 @@ app.controller("indexController", function($http, $scope, $location) {
     };
     
     $scope.select_type = function (type) {
-        $http.get('/tags.json?type='+type).then(response => {
+        $http.get('/tags.json?serial='+$scope.serial+'&type='+type).then(response => {
             $scope.tags = response.data;
         }, function errorCallback(response) {
         });
@@ -221,7 +230,8 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.select_command = function(tag, command) {
         var data = $.param({
             command: command,
-            tagid: tag
+            tagid: tag,
+            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -237,7 +247,8 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.select_action = function(tag, action) {
         var data = $.param({
             action: action,
-            tagid: tag
+            tagid: tag,
+            serial: $scope.serial
         });
         console.log(action)
         $http.post("/register.json", data, {})
@@ -254,7 +265,8 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.select_url = function(tag, url) {
         var data = $.param({
             url: url,
-            tagid: tag
+            tagid: tag,
+            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -270,7 +282,8 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.select_artist = function(tag, artistid) {
         var data = $.param({
             artistid: artistid,
-            tagid: tag
+            tagid: tag,
+            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -286,7 +299,8 @@ app.controller("indexController", function($http, $scope, $location) {
     $scope.select_album = function(tag, albumid) {
         var data = $.param({
             albumid: albumid,
-            tagid: tag
+            tagid: tag,
+            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -310,7 +324,8 @@ app.controller("indexController", function($http, $scope, $location) {
         addon: addon,
         playlist: playlist,
         video: video,
-        tagid: tag
+        tagid: tag,
+        serial: $scope.serial
       });
       $http.post("/register.json", data, {})
       .then(
