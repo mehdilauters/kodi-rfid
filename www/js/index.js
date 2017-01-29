@@ -1,7 +1,7 @@
 var APP_ID = '215062';
 var CALLBACK = '/'
 
-app.controller("indexController", function($http, $scope, $location, $cookieStore) {
+app.controller("indexController", function($http, $scope, $location, $cookies, $cookieStore) {
     $scope.types = [];
     $scope.tags = [];
     $scope.artists = [];
@@ -10,6 +10,7 @@ app.controller("indexController", function($http, $scope, $location, $cookieStor
     $scope.last = null;
     $scope.deezer_mode = false;
     $scope.deezer_volume_step = 10;
+    $scope.cookie = $cookieStore.get('serial');
     $scope.serial=$cookieStore.get('serial');
     
     if( $scope.serial === undefined ) {
@@ -57,8 +58,12 @@ app.controller("indexController", function($http, $scope, $location, $cookieStor
     }
     
     $scope.save_serial = function() {
-      $cookieStore.put('serial',$scope.serial)
-      console.log($scope.serial)
+      var now = new Date(),
+      // this will set the expiration to 12 months
+      exp = new Date(now.getFullYear()+1, now.getMonth(), now.getDate());
+      $cookies.putObject('serial',$scope.serial,{'expires':exp})
+      
+      $scope.cookie = $cookieStore.get('serial');
     }
     
     $scope.login = function() {

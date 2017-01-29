@@ -47,7 +47,7 @@
             </div>
             <div id="player" style="width:100%;" align="center"></div>
       <div>
-      <div>
+      <div ng-show="cookie === undefined || serial == '' " >
         <label>Serial Number</label><input ng-model="serial" /><button ng-click="save_serial()" >Save</button>
       </div>
       <div id="register_container_main" class="masked">

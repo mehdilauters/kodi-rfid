@@ -53,4 +53,7 @@ def main(args):
   
   server.listen()
 
-main(parse_args())
+try:
+  main(parse_args())
+except KeyboardInterrupt:
+  pass
