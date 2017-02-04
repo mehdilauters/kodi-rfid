@@ -9,6 +9,7 @@ from threading import Lock
 from src.WebUi import *
 from src.kodiRFIDServer import *
 from src.deezerRFIDServer import *
+from src.ChromecastRFIDServer import *
 
 
 default_baseurl='http://localhost:8080'
@@ -23,7 +24,7 @@ def parse_args():
   parser.add_argument("-k", "--kodiurl", help="tags database")
   parser.add_argument("-e", "--edit", action='store_true', help="tags database")
   parser.add_argument("-s", "--shuffle", action='store_true', help="shuffle added items")
-  parser.add_argument("-m", "--mode", action='store_true', help="deezer version")
+  parser.add_argument("-m", "--mode", help="kodi (default) | deezer | chromecast")
   parser.add_argument("-w", "--www", help="webui port")
   return parser.parse_args()
 
@@ -41,9 +42,17 @@ def main(args):
   
   server = None
   if not args.mode:
+    args.mode = 'kodi'
+  
+  if args.mode == 'kodi':
     server = kodiRFIDServer(args)
-  else:
+  elif args.mode == 'deezer':
     server = deezerRFIDServer(args)
+  elif args.mode == 'chromecast':
+    server = ChromecastRFIDServer(args)
+  else:
+    print "Error: %s not availbale"%args.mode
+    sys.exit(-1)
   
   if args.www is not None:
     args.www = int(args.www)

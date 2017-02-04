@@ -20,7 +20,7 @@ class deezerRFIDServer(baseRFIDServer):
   
   
   def play_radio(self, item):
-    self.kodi.Player.Open(item={'file':item})
+    pass
   
   def play_pause(self):
     self.current_item = {'id': 'play_pause', 'type':'action'}
