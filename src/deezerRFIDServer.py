@@ -48,12 +48,10 @@ class deezerRFIDServer(baseRFIDServer):
       artistid = self.get_artist(tag)
       if artistid is not None:
         self.play_artist(artistid)
-        print artistid
       else:
         albumid = self.get_album(tag)
         if albumid is not None:
           self.play_album(albumid)
-          print albumid
         else:
           action = self.get_action(tag)
           if action is not None:
@@ -101,7 +99,7 @@ class deezerRFIDServer(baseRFIDServer):
   def get_addons(self):
       return []
 
-  def get_artists(self, _serials):
+  def get_artists(self, _serial):
     q = 'select * from artists_tags where serial=%s'%_serial
     res = self.fetchall(q)
     return res
@@ -138,7 +136,7 @@ class deezerRFIDServer(baseRFIDServer):
     return None
   
   def get_commands(self, _serial):
-    q = 'select * from commands_tags serial='%_serial
+    q = 'select * from commands_tags serial="%s"'%_serial
     res = self.fetchall(q)
     return res
   

@@ -176,10 +176,20 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
       }
     }
     
+    $scope.deezer_play_artist = function(id) {
+      tracks = []
+      DZ.api('/artist/' + id + '/top', function(response){
+         for( i in response.data ) {
+           tracks.push(response.data[i].id)
+         }
+         DZ.player.playTracks(tracks);
+      });
+    }
+    
     $scope.deezer_action = function(item) {
       console.log(item);
       if(item.type == 'artist') {
-        DZ.player.playRadio(item.id, 'artist');
+        $scope.deezer_play_artist(item.id);
       } else if(item.type == 'album') {
         DZ.player.playAlbum(item.id);
       } else if(item.type == 'action' && item.id == 'play_pause') {

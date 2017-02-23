@@ -9,7 +9,6 @@ from threading import Lock
 from src.WebUi import *
 from src.kodiRFIDServer import *
 from src.deezerRFIDServer import *
-from src.ChromecastRFIDServer import *
 
 
 default_baseurl='http://localhost:8080'
@@ -49,6 +48,7 @@ def main(args):
   elif args.mode == 'deezer':
     server = deezerRFIDServer(args)
   elif args.mode == 'chromecast':
+    from src.ChromecastRFIDServer import ChromecastRFIDServer
     server = ChromecastRFIDServer(args)
   else:
     print "Error: %s not availbale"%args.mode

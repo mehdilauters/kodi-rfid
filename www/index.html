@@ -105,7 +105,7 @@
             <hr/>
         </div>
     </div>
-            <div class="media" ng-repeat="tag in tags" id="tag_{{tag[1]}}">
+            <div class="media" ng-repeat="tag in tags" id="tag_{{tag[2]}}">
                 <div class="media-left">
 <!--                    <a href="#">
                         <img class="media-object" src="..." alt="...">
@@ -114,7 +114,7 @@
                 <div class="media-body">
                     <h4 class="media-heading">Tag</h4>
                     <p ng-repeat="e in tag" >{{e}}</p>
-                    <a href="#" ng-click="delete(tag[1])" class="btn btn-default" role="button">Delete</a>
+                    <a href="#" ng-click="delete(tag[2])" class="btn btn-default" role="button">Delete</a>
                 </div>
             </div>
         </div>
