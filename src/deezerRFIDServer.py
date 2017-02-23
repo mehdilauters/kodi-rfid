@@ -16,23 +16,23 @@ class deezerRFIDServer(baseRFIDServer):
   def __init__(self, args):
     baseRFIDServer.__init__(self,args)
     self.name = 'deezer'
-    self.current_item = {'id':'', 'type':''}
+    self.current_item = {}
   
   
-  def play_radio(self, item):
+  def play_radio(self, serial, item):
     pass
   
-  def play_pause(self):
-    self.current_item = {'id': 'play_pause', 'type':'action'}
+  def play_pause(self, serial):
+    self.current_item[serial] = {'id': 'play_pause', 'type':'action'}
   
-  def volume_up(self):
-    self.current_item = {'id': 'volume_up', 'type':'action'}
+  def volume_up(self, serial):
+    self.current_item[serial] = {'id': 'volume_up', 'type':'action'}
 
-  def volume_down(self):
-    self.current_item = {'id': 'volume_down', 'type':'action'}
+  def volume_down(self, serial):
+    self.current_item[serial] = {'id': 'volume_down', 'type':'action'}
     
-  def next(self):
-    self.current_item = {'id': 'next', 'type':'action'}
+  def next(self, serial):
+    self.current_item[serial] = {'id': 'next', 'type':'action'}
   
   def delete_tag(self, tag):
     for t in ['albums_tags', 'addons_tags', 'artists_tags', 'actions_tags', 'urls_tags', 'commands_tags']:
@@ -42,27 +42,24 @@ class deezerRFIDServer(baseRFIDServer):
   
   def on_tag_received(self, tag, serial = ''):
       self.last_tag[serial] = tag
-      if self.args.edit:
-        self.delete_tag(tag)
-        return self.register_tag(tag)
-      artistid = self.get_artist(tag)
+      artistid = self.get_artist(serial, tag)
       if artistid is not None:
-        self.play_artist(artistid)
+        self.play_artist(serial, artistid)
       else:
-        albumid = self.get_album(tag)
+        albumid = self.get_album(serial, tag)
         if albumid is not None:
-          self.play_album(albumid)
+          self.play_album(serial, albumid)
         else:
-          action = self.get_action(tag)
+          action = self.get_action(serial, tag)
           if action is not None:
             if action == 'play_pause':
-              self.play_pause()
+              self.play_pause(serial)
             elif action == 'volume_up':
-              self.volume_up()
+              self.volume_up(serial)
             elif action == 'volume_down':
-              self.volume_down()
+              self.volume_down(serial)
             elif  action == 'next':
-              self.next()
+              self.next(serial)
             else:
               print "action not available"
             
@@ -104,7 +101,7 @@ class deezerRFIDServer(baseRFIDServer):
     res = self.fetchall(q)
     return res
 
-  def get_artist(self, tag):
+  def get_artist(self,_serial, tag):
     q = 'select * from artists_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
@@ -112,11 +109,11 @@ class deezerRFIDServer(baseRFIDServer):
     return None
 
   def get_albums(self, _serial):
-    q = 'select * from artists_tags where serial=%s'%_serial
+    q = 'select * from albums_tags where serial=%s'%_serial
     res = self.fetchall(q)
     return res
 
-  def get_album(self, tag):
+  def get_album(self, _serial, tag):
     q = 'select * from albums_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
@@ -128,7 +125,7 @@ class deezerRFIDServer(baseRFIDServer):
     res = self.fetchall(q)
     return res
   
-  def get_action(self, tag):
+  def get_action(self, _serial, tag):
     q = 'select * from actions_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
@@ -136,11 +133,11 @@ class deezerRFIDServer(baseRFIDServer):
     return None
   
   def get_commands(self, _serial):
-    q = 'select * from commands_tags serial="%s"'%_serial
+    q = 'select * from commands_tags where serial="%s"'%_serial
     res = self.fetchall(q)
     return res
   
-  def get_command(self, tag):
+  def get_command(self, _serial, tag):
     q = 'select * from commands_tags where tag = "%s"'%tag
     res = self.fetchone(q)
     if res is not None:
@@ -151,30 +148,34 @@ class deezerRFIDServer(baseRFIDServer):
     self.db.commit()
   
   
-  def current_play(self):
-    item = self.current_item
-    self.current_item = {'id':'', 'type':''}
+  def current_play(self, serial):
+    item = {'id':'', 'type':''}
+    try:
+      item = self.current_item[serial]
+    except:
+      pass
+    self.current_item[serial] = {'id':'', 'type':''}
     return item
   
-  def clear_playlist(self,pid):
+  def clear_playlist(self,serial, pid):
     pass
     
-  def play_artist(self, artistid):
-    self.current_item = {'id': artistid, 'type': 'artist'}
+  def play_artist(self, serial, artistid):
+    self.current_item[serial] = {'id': artistid, 'type': 'artist'}
   
-  def play_album(self, albumid):
-    self.current_item = {'id': albumid, 'type': 'album'}
+  def play_album(self, serial, albumid):
+    self.current_item[serial] = {'id': albumid, 'type': 'album'}
     
-  def get_availables_albums(self):
+  def get_availables_albums(self, serial):
       return
  
-  def get_availables_artists(self):
+  def get_availables_artists(self, serial):
       return
 
-  def get_availables_actions(self):
+  def get_availables_actions(self, serial):
       return self.ACTIONS
   
-  def get_availables_types(self):
+  def get_availables_types(self, serial):
       return self.TYPES
 
   def register_album(self, serial, tag, albumid):

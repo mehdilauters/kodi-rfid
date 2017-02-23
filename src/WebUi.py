@@ -8,6 +8,7 @@ import os
 import re
 import urllib
 import urlparse
+import Cookie
 
 class WebuiHTTPHandler(BaseHTTPRequestHandler):
     
@@ -44,21 +45,21 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           except IOError as e:
                 self.send_500(str(e))
     
-    def _get_types(self):
+    def _get_types(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        types = self.server.app.get_availables_types()
+        types = self.server.app.get_availables_types(serial)
         data = json.dumps(types)
         self.wfile.write(data)
         
-    def _get_actions(self):
+    def _get_actions(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        actions = self.server.app.get_availables_actions()
+        actions = self.server.app.get_availables_actions(serial)
         data = json.dumps(actions)
         self.wfile.write(data)
         
@@ -67,7 +68,7 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        addons_raw = self.server.app.get_availables_addons()
+        addons_raw = self.server.app.get_availables_addons(serial)
         addons = []
         for a in addons_raw:
           addons.append({
@@ -88,12 +89,12 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           data = {'id':last}
         self.wfile.write(json.dumps(data))
     
-    def _get_albums(self):
+    def _get_albums(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        albums = self.server.app.get_availables_albums()
+        albums = self.server.app.get_availables_albums(serial)
         data = {}
         if albums is not None:
           for i,a in enumerate(albums):
@@ -101,12 +102,12 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           data = json.dumps(albums)
         self.wfile.write(data)
         
-    def _get_artists(self):
+    def _get_artists(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        artists = self.server.app.get_availables_artists()
+        artists = self.server.app.get_availables_artists(serial)
         data = {}
         if artists is not None:
           for i,a in enumerate(artists):
@@ -114,16 +115,16 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           data = json.dumps(artists)
         self.wfile.write(data)
     
-    def _get_deezer(self):
+    def _get_deezer(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
         self.end_headers()
-        play = self.server.app.current_play()
+        play = self.server.app.current_play(serial)
         data = json.dumps(play)
         self.wfile.write(data)
 
-    def _get_commands(self):
+    def _get_commands(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
@@ -132,7 +133,7 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         data = json.dumps(commands)
         self.wfile.write(data)
 
-    def _get_urls(self):
+    def _get_urls(self, serial):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
@@ -234,7 +235,15 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         return self._register(urlparse.parse_qs(urlparse.urlsplit(post).path))
     
     def do_GET(self):
+        serial = ''
+        if 'cookie' in self.headers:
+          ckdata = self.headers['Cookie']
+          # use a Cookie.SimpleCookie to deserialize data
+          ck = Cookie.SimpleCookie()
+          ck.load(ckdata)
+          serial = ck['serial'].value
         path,params,args = self._parse_url()
+        dparams = {} if params is None else urlparse.parse_qs(params)
         if ('..' in args) or ('.' in args):
             self.send_400()
             return
@@ -243,38 +252,25 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         elif len(args) == 1 and args[0] == 'mode.json':
             return self._get_mode()
         elif len(args) == 1 and args[0] == 'types.json':
-            return self._get_types()
+            return self._get_types(serial)
         elif len(args) == 1 and args[0] == 'tags.json':
-          serial = ''
-          if params is not None:
-            m = re.match(
-                r"serial=(.*)\&type=(.*)",params)
-            if m is not None:
-              serial = m.groups()[0]
-              t = m.groups()[1]
-          return self._get_tags(serial, t)
+          return self._get_tags(serial, dparams['type'][0])
         elif len(args) == 1 and args[0] == 'last.json':
-            serial = ''
-            if params is not None:
-              m = re.match(
-                  r"serial=(.*)",params)
-              if m is not None:
-                serial = m.groups()[0]
             return self._get_last(serial)
         elif len(args) == 1 and args[0] == 'albums.json':
-            return self._get_albums()
+            return self._get_albums(serial)
         elif len(args) == 1 and args[0] == 'urls.json':
-            return self._get_urls()
+            return self._get_urls(serial)
         elif len(args) == 1 and args[0] == 'commands.json':
-            return self._get_commands()
+            return self._get_commands(serial)
         elif len(args) == 1 and args[0] == 'artists.json':
-            return self._get_artists()
+            return self._get_artists(serial)
         elif len(args) == 1 and args[0] == 'actions.json':
-            return self._get_actions()
+            return self._get_actions(serial)
         elif len(args) == 1 and args[0] == 'addons.json':
-            return self._get_addons()
+            return self._get_addons(serial)
         elif len(args) == 1 and args[0] == 'deezer.json':
-            return self._get_deezer()
+            return self._get_deezer(serial)
         elif len(args) == 1 and args[0] == 'tag.json':
             if params is not None:
               m = re.match(

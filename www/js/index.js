@@ -61,7 +61,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
       var now = new Date(),
       // this will set the expiration to 12 months
       exp = new Date(now.getFullYear()+1, now.getMonth(), now.getDate());
-      $cookies.putObject('serial',$scope.serial,{'expires':exp})
+      $cookies.putObject('serial',parseInt($scope.serial),{'expires':exp})
       
       $scope.cookie = $cookieStore.get('serial');
     }
@@ -95,7 +95,8 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
     };
     
     $scope.select_type = function (type) {
-        $http.get('/tags.json?serial='+$scope.serial+'&type='+type).then(response => {
+        $scope.tags = [];
+        $http.get('/tags.json?type='+type).then(response => {
             $scope.tags = response.data;
         }, function errorCallback(response) {
         });
@@ -149,7 +150,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
     }
     
     $scope.update_last = function () {
-        $http.get('/last.json?serial='+$scope.serial).then(response => {
+        $http.get('/last.json').then(response => {
             var last = response.data.id;
             if(last == null) {
                 $("#register_container_main").hide();
@@ -246,7 +247,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             command: command,
             tagid: tag,
-            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -263,7 +263,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             action: action,
             tagid: tag,
-            serial: $scope.serial
         });
         console.log(action)
         $http.post("/register.json", data, {})
@@ -281,7 +280,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             url: url,
             tagid: tag,
-            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -298,7 +296,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             artistid: artistid,
             tagid: tag,
-            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -315,7 +312,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             albumid: albumid,
             tagid: tag,
-            serial: $scope.serial
         });
         $http.post("/register.json", data, {})
         .then(
@@ -340,7 +336,6 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         playlist: playlist,
         video: video,
         tagid: tag,
-        serial: $scope.serial
       });
       $http.post("/register.json", data, {})
       .then(
