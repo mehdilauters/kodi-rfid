@@ -241,7 +241,10 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
           # use a Cookie.SimpleCookie to deserialize data
           ck = Cookie.SimpleCookie()
           ck.load(ckdata)
-          serial = ck['serial'].value
+          try:
+            serial = ck['serial'].value
+          except:
+            pass
         path,params,args = self._parse_url()
         dparams = {} if params is None else urlparse.parse_qs(params)
         if ('..' in args) or ('.' in args):

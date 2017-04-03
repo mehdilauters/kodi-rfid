@@ -247,6 +247,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             command: command,
             tagid: tag,
+            serial: $scope.serial,
         });
         $http.post("/register.json", data, {})
         .then(
@@ -263,6 +264,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             action: action,
             tagid: tag,
+            serial: $scope.serial,
         });
         console.log(action)
         $http.post("/register.json", data, {})
@@ -280,6 +282,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             url: url,
             tagid: tag,
+            serial: $scope.serial,
         });
         $http.post("/register.json", data, {})
         .then(
@@ -296,6 +299,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             artistid: artistid,
             tagid: tag,
+            serial: $scope.serial,
         });
         $http.post("/register.json", data, {})
         .then(
@@ -312,6 +316,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         var data = $.param({
             albumid: albumid,
             tagid: tag,
+            serial: $scope.serial,
         });
         $http.post("/register.json", data, {})
         .then(
@@ -336,6 +341,7 @@ app.controller("indexController", function($http, $scope, $location, $cookies, $
         playlist: playlist,
         video: video,
         tagid: tag,
+        serial: $scope.serial,
       });
       $http.post("/register.json", data, {})
       .then(
