@@ -119,6 +119,7 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         self.send_response(200)
         self.send_header('Content-type','application/json')
         self.send_header('Access-Control-Allow-Origin','*')
+        self.send_header('Cache-Control','no-cache')
         self.end_headers()
         play = self.server.app.current_play(serial)
         data = json.dumps(play)
@@ -235,7 +236,7 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
         return self._register(urlparse.parse_qs(urlparse.urlsplit(post).path))
     
     def do_GET(self):
-        serial = ''
+        serial = None
         if 'cookie' in self.headers:
           ckdata = self.headers['Cookie']
           # use a Cookie.SimpleCookie to deserialize data
@@ -247,6 +248,8 @@ class WebuiHTTPHandler(BaseHTTPRequestHandler):
             pass
         path,params,args = self._parse_url()
         dparams = {} if params is None else urlparse.parse_qs(params)
+        if dparams.has_key('serial'):
+          serial = dparams['serial'][0]
         if ('..' in args) or ('.' in args):
             self.send_400()
             return
