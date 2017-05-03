@@ -15,6 +15,13 @@ import com.deezer.sdk.player.AlbumPlayer;
 import com.deezer.sdk.player.ArtistRadioPlayer;
 import com.deezer.sdk.player.networkcheck.WifiAndMobileNetworkStateChecker;
 
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.MalformedURLException;
+import java.net.URL;
+
 
 public class MainActivity extends AppCompatActivity {
 
@@ -25,13 +32,68 @@ public class MainActivity extends AppCompatActivity {
         tv1.setText(_message);
     }
 
+    void play_thread() {
+        String serial = "XXXXXXX";
+
+        Log.i("Message", "Download");
+        JSONObject jObject = null;
+        final TextView tv1 = (TextView) this.findViewById(R.id.hello_text);
+        URL yahoo = null;
+        try {
+            yahoo = new URL("https://deezer.OOOO.COM/deezer.json?serial=" + serial);
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+        Log.i("Message", yahoo.toString());
+        try {
+            BufferedReader in = new BufferedReader(
+                    new InputStreamReader(
+                            yahoo.openStream()));
+
+
+            String inputLine;
+            String all = "";
+
+            while ((inputLine = in.readLine()) != null)
+                all += inputLine;
+
+            in.close();
+
+            final String disp = all;
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    tv1.setText(disp);
+                }
+            });
+
+            Log.i("Message", all);
+            jObject = new JSONObject(all);
+            String type = jObject.getString("type");
+            Log.i("Message", type);
+            if(type.equals("artist")) {
+                long artistid = jObject.getLong("id");
+
+                // start playing music
+                Log.i("Message", String.valueOf(artistid));
+                m_artistPlayer.playArtistRadio(artistid);
+            }
+        } catch (Exception e) {
+            String text;
+            text = "Exception...\n" + e.getMessage() + "\n" + e.toString();
+            e.printStackTrace();
+            //tv1.setText(text);
+            Log.i("Message", text);
+        }
+    }
+
     protected void play(DeezerConnect deezerConnect) {
         try {
             m_artistPlayer = new ArtistRadioPlayer(this.getApplication(), deezerConnect, new WifiAndMobileNetworkStateChecker());
             Log.i("Message", "start play");
             final TextView tv1 = (TextView)findViewById(R.id.hello_text);
             tv1.setText("Ready to play");
-            final Handler handler=new Handler();
+          /*  final Handler handler=new Handler();
             final MainActivity self = this;
             Runnable task = new Runnable(){
                 @Override
@@ -50,6 +112,19 @@ public class MainActivity extends AppCompatActivity {
                 }
             };
             handler.post(task);
+
+
+
+
+            });*/
+
+
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    play_thread();
+                }
+            }).start();
 
         } catch(Exception e) {
             e.printStackTrace();
