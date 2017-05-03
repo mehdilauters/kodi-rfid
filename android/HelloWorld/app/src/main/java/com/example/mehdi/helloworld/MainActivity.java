@@ -33,14 +33,14 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void play_thread() {
-        String serial = "XXXXXXX";
+        Config config = new Config();
 
         Log.i("Message", "Download");
         JSONObject jObject = null;
         final TextView tv1 = (TextView) this.findViewById(R.id.hello_text);
         URL yahoo = null;
         try {
-            yahoo = new URL("https://deezer.OOOO.COM/deezer.json?serial=" + serial);
+            yahoo = new URL("https://"+config.host+"/deezer.json?serial=" + config.serial);
         } catch (MalformedURLException e) {
             e.printStackTrace();
         }
@@ -93,36 +93,18 @@ public class MainActivity extends AppCompatActivity {
             Log.i("Message", "start play");
             final TextView tv1 = (TextView)findViewById(R.id.hello_text);
             tv1.setText("Ready to play");
-          /*  final Handler handler=new Handler();
-            final MainActivity self = this;
-            Runnable task = new Runnable(){
-                @Override
-                public void run() {
-                    Log.i("Message", "reload");
-                    DeezerUpdate dzupdate = new DeezerUpdate(self);
-                    AsyncTaskCompat.executeParallel( dzupdate, self);
-                    try {
-                        Thread.sleep(1000);
-                        handler.post(this); // set time here to refresh textView
-                    }
-                    catch (Exception e)
-                    {
-
-                    }
-                }
-            };
-            handler.post(task);
-
-
-
-
-            });*/
-
 
             new Thread(new Runnable() {
                 @Override
                 public void run() {
-                    play_thread();
+                    try {
+                        while (true) {
+                            play_thread();
+                            Thread.sleep(500);
+                        }
+                    } catch (Exception e) {
+                    }
+                    Log.i("Message", "thread exit");
                 }
             }).start();
 
