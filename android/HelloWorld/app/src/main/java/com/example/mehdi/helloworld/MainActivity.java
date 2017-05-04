@@ -32,12 +32,22 @@ public class MainActivity extends AppCompatActivity {
         tv1.setText(_message);
     }
 
+    void ui_message(String message) {
+        final TextView tv1 = (TextView) this.findViewById(R.id.hello_text);
+        final String _message = message;
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                tv1.setText(_message);
+            }
+        });
+    }
+
     void play_thread() {
         Config config = new Config();
 
         Log.i("Message", "Download");
         JSONObject jObject = null;
-        final TextView tv1 = (TextView) this.findViewById(R.id.hello_text);
         URL yahoo = null;
         try {
             yahoo = new URL("https://"+config.host+"/deezer.json?serial=" + config.serial);
@@ -59,24 +69,21 @@ public class MainActivity extends AppCompatActivity {
 
             in.close();
 
-            final String disp = all;
-            runOnUiThread(new Runnable() {
-                @Override
-                public void run() {
-                    tv1.setText(disp);
-                }
-            });
-
             Log.i("Message", all);
             jObject = new JSONObject(all);
             String type = jObject.getString("type");
-            Log.i("Message", type);
-            if(type.equals("artist")) {
-                long artistid = jObject.getLong("id");
+            if(! type.equals("")) {
+                Log.i("Message", type);
+                if (type.equals("artist")) {
+                    long artistid = jObject.getLong("id");
 
-                // start playing music
-                Log.i("Message", String.valueOf(artistid));
-                m_artistPlayer.playArtistRadio(artistid);
+                    // start playing music
+                    Log.i("Message", String.valueOf(artistid));
+                    ui_message("artist " + String.valueOf(artistid));
+                    m_artistPlayer.playArtistRadio(artistid);
+                } else {
+                    ui_message("Invalid type " + type);
+                }
             }
         } catch (Exception e) {
             String text;
@@ -118,6 +125,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        final TextView serial = (TextView)findViewById(R.id.serial);
+
+        Config config = new Config();
+        serial.setText(config.host + " ( " + config.serial + " )");
 
         // replace with your own Application ID
         String applicationID = "215062";
